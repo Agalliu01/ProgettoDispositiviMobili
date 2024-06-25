@@ -1,24 +1,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/navigation_home"
         android:title="Home"
-        app:icon="@drawable/ic_launcher_background" />
+        android:icon="@drawable/icons8_casa_50" />
 
     <item
         android:id="@+id/navigation_search"
         android:title="Search"
-        app:icon="@drawable/ic_launcher_foreground" />
+        android:icon="@drawable/icons8_ricerca_50" />
 
     <item
         android:id="@+id/navigation_add_post"
+        android:icon="@drawable/icons8_aggiungi_50"
         android:title="Add Post"
-        app:icon="@drawable/ic_launcher_foreground" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/navigation_settings"
         android:title="Settings"
-        app:icon="@drawable/ic_launcher_foreground" />
+        android:icon="@drawable/icons8_impostazioni_50" />
 
 </menu>
