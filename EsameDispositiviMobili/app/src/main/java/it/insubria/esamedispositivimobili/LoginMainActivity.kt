@@ -1,6 +1,7 @@
 package it.insubria.esamedispositivimobili
 
 
+
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -49,7 +50,7 @@ class LoginMainActivity : AppCompatActivity() {
                     // Login successful
                     Toast.makeText(this, "Login avvenuto con successo", Toast.LENGTH_SHORT).show()
                     // Proceed to the next activity
-                    val intent = Intent(this, FirstPageLoggedUserActivity::class.java)
+                    val intent = Intent(this,FirstPageLoggedUserActivity::class.java)
                     startActivity(intent)
                     finish()
                 } else {

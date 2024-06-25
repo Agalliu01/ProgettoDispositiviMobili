@@ -1,5 +1,6 @@
 package it.insubria.esamedispositivimobili
 
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -119,7 +120,7 @@ class SignUpUsernameActivity : AppCompatActivity() {
     }
 
     private fun moveToNextActivity() {
-        val intent = Intent(this, FirstPageLoggedUserActivity::class.java)
+        val intent = Intent(this,FirstPageLoggedUserActivity::class.java)
         intent.putExtra("userDetails", userDetails)
         startActivity(intent)
         finish()
