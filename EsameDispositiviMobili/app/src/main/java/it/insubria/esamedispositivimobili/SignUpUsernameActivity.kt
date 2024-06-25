@@ -6,9 +6,11 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import org.w3c.dom.Text
 
 class SignUpUsernameActivity : AppCompatActivity() {
 
@@ -25,6 +27,7 @@ class SignUpUsernameActivity : AppCompatActivity() {
         val usernameEditText = findViewById<EditText>(R.id.usernameEditText)
         val confermaButton = findViewById<Button>(R.id.confermaButton)
         val skipButton = findViewById<Button>(R.id.skipButton)
+
 
         confermaButton.setOnClickListener {
             val username = usernameEditText.text.toString().trim()

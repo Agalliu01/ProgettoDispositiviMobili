@@ -1,52 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#A8A07343"
+    tools:context=".SignUpUsernameActivity">
 
-    <EditText
-        android:id="@+id/nomeEditText"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:hint="Nome"
-        android:padding="16dp" />
+        android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/cognomeEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/nomeEditText"
-        android:layout_marginTop="16dp"
-        android:hint="Cognome"
-        android:padding="16dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Registrazione"
+                android:textSize="50dp"
+                android:textColor="#1E88E5"/>
 
-    <EditText
-        android:id="@+id/emailEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cognomeEditText"
-        android:layout_marginTop="16dp"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:padding="16dp" />
+            <EditText
+                android:id="@+id/nomeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Nome"
+                android:textColor="#1E88E5"
+                android:textColorHint="#1E88E5"
+                android:padding="16dp"
+                android:layout_marginTop="24dp" />
 
-    <EditText
-        android:id="@+id/passwordEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/emailEditText"
-        android:layout_marginTop="16dp"
-        android:hint="Password"
-        android:inputType="textPassword"
-        android:padding="16dp" />
+            <EditText
+                android:id="@+id/cognomeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#1E88E5"
+                android:textColorHint="#1E88E5"
+                android:layout_marginTop="16dp"
+                android:hint="Cognome"
+                android:padding="16dp" />
 
-    <Button
-        android:id="@+id/continuaButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/passwordEditText"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
-        android:text="Continua" />
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Email"
+                android:textColor="#1E88E5"
+                android:textColorHint="#1E88E5"
+                android:inputType="textEmailAddress"
+                android:padding="16dp" />
+
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Password"
+                android:textColor="#1E88E5"
+                android:textColorHint="#1E88E5"
+                android:inputType="textPassword"
+                android:padding="16dp" />
+
+
+            <Button
+                android:id="@+id/continuaButton"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:text="Registrati"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bottoncustom"
+                android:elevation="10dp"
+                android:padding="10dp"
+                android:layout_marginEnd="40dp" /> <!-- Spazio tra Button e TextView -->
+
+
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:text="***Attenzione campi obbligatori***"
+                android:textColor="#1E88E5" />
+
+            <TextView
+                android:id="@+id/loginMover"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:text="Utente gia registrato? Clicca qui "
+                android:textColor="#1E88E5" />
+
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </RelativeLayout>
