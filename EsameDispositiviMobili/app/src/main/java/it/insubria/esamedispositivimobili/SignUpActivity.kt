@@ -31,7 +31,7 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var showPassword2ImageView: ImageView
     private lateinit var registratiButton: Button
     private lateinit var loginMover: TextView
-
+//
     private var isPasswordVisible1 = false
     private var isPasswordVisible2 = false
 
