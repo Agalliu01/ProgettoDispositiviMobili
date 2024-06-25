@@ -1,14 +1,24 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
         android:id="@+id/navigation_home"
-        android:title="Home" />
+        android:title="Home"
+        app:icon="@drawable/ic_launcher_background" />
+
     <item
         android:id="@+id/navigation_search"
-        android:title="Search" />
+        android:title="Search"
+        app:icon="@drawable/ic_launcher_foreground" />
+
     <item
         android:id="@+id/navigation_add_post"
-        android:title="Add Post" />
+        android:title="Add Post"
+        app:icon="@drawable/ic_launcher_foreground" />
+
     <item
         android:id="@+id/navigation_settings"
-        android:title="Settings" />
+        android:title="Settings"
+        app:icon="@drawable/ic_launcher_foreground" />
+
 </menu>
