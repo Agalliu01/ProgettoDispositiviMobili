@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "979700157070",
+    "project_id": "esamedispositivimobili",
+    "storage_bucket": "esamedispositivimobili.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:979700157070:android:1468d2ca31448b5d6917df",
+        "android_client_info": {
+          "package_name": "it.insubria.esamedispositivimobili"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfynkvrA8rzKupcTKkVyzUGe2qgbXSSqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
