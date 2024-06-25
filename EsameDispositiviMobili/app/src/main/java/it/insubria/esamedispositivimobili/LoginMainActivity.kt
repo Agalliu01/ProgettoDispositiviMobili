@@ -49,7 +49,7 @@ class LoginMainActivity : AppCompatActivity() {
                     // Login successful
                     Toast.makeText(this, "Login avvenuto con successo", Toast.LENGTH_SHORT).show()
                     // Proceed to the next activity
-                    val intent = Intent(this, LoginMainActivity::class.java)
+                    val intent = Intent(this, FirstPageLoggedUserActivity::class.java)
                     startActivity(intent)
                     finish()
                 } else {

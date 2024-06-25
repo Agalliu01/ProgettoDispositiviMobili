@@ -20,6 +20,12 @@
         android:theme="@style/Theme.EsameDispositiviMobili"
         tools:targetApi="31">
         <activity
+            android:name=".FirstPageLoggedUserActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SignUpUsernameActivity"
+            android:exported="false" />
+        <activity
             android:name=".SignUpActivity"
             android:exported="false" />
         <activity
