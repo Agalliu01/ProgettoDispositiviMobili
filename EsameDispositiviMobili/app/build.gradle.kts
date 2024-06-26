@@ -7,6 +7,9 @@ plugins {
 android {
     namespace = "it.insubria.esamedispositivimobili"
     compileSdk = 34
+    viewBinding {
+        enable=true
+    }
 
     defaultConfig {
         applicationId = "it.insubria.esamedispositivimobili"
@@ -37,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation ("com.squareup.picasso:picasso:2.71828")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 

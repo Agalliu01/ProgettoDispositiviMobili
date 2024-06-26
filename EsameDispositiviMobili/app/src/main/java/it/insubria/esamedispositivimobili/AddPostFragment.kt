@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import it.insubria.esamedispositivimobili.HomeFragment
 import it.insubria.esamedispositivimobili.LoginMainActivity
 import it.insubria.esamedispositivimobili.R
 import kotlinx.coroutines.CoroutineScope
@@ -118,11 +119,11 @@ class AddPostFragment : Fragment() {
     }
 
     private suspend fun uploadImageAndPost(description: String, link: String, user: FirebaseUser) {
-        // Generate a random image name
-        val imageName = UUID.randomUUID().toString()
-        val imageRef = storage.reference.child("images/$imageName")
-
         try {
+            // Generate a random image name
+            val imageName = UUID.randomUUID().toString()
+            val imageRef = storage.reference.child("images/$imageName")
+
             // Upload image to Firebase Storage
             val uploadTask = imageRef.putFile(imageUri!!).await()
             val downloadUrl = imageRef.downloadUrl.await()
@@ -131,26 +132,18 @@ class AddPostFragment : Fragment() {
             val username = user.displayName ?: user.email ?: "Anonymous"
             val uid = user.uid
 
-            val post = hashMapOf(
-                "uid" to uid,
-                "username" to username,
-                "description" to description,
-                "imageURL" to downloadUrl.toString(), // Store image URL in Firestore
-                "link" to link, // Store link in Firestore
-                "commentsEnabled" to false, // Default to false
-                "likesCount" to 0 // Initial likes count
+            val post = Post(
+                uid = uid,
+                username = username,
+                description = description,
+                imageUrl = downloadUrl.toString(),
+                link = link,
+                comments = mutableListOf(),
+                likesCount = 0
             )
 
             // Add the post to Firestore
-            firestore.collection("posts").add(post).await()
-
-            // Handle success
-            withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Post uploaded successfully", Toast.LENGTH_SHORT).show()
-
-                // Navigate to HomeFragment after successful upload
-                navigateBack()
-            }
+            addPostToFirestore(post)
 
         } catch (e: Exception) {
             // Handle failure
@@ -166,17 +159,31 @@ class AddPostFragment : Fragment() {
             val username = user.displayName ?: user.email ?: "Anonymous"
             val uid = user.uid
 
-            val post = hashMapOf(
-                "uid" to uid,
-                "username" to username,
-                "description" to description,
-                "link" to link, // Store link in Firestore
-                "commentsEnabled" to false, // Default to false
-                "likesCount" to 0 // Initial likes count
+            val post = Post(
+                uid = uid,
+                username = username,
+                description = description,
+                imageUrl = "",
+                link = link,
+                comments = mutableListOf(),
+                likesCount = 0
             )
 
             // Add the post to Firestore
-            firestore.collection("posts").add(post).await()
+            addPostToFirestore(post)
+
+        } catch (e: Exception) {
+            // Handle failure
+            withContext(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Failed to add post to Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private suspend fun addPostToFirestore(post: Post) {
+        try {
+            // Add the post to Firestore
+            firestore.collection("posts").add(post.toMap()).await()
 
             // Handle success
             withContext(Dispatchers.Main) {
@@ -199,7 +206,37 @@ class AddPostFragment : Fragment() {
 
         // Replace current fragment with HomeFragment without adding to back stack
         fragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer,AddPostFragment())
+            .replace(R.id.fragmentContainer,HomeFragment())
             .commit()
     }
 }
+data class Post(
+    val uid: String,
+    val username: String,
+    val description: String,
+    val imageUrl: String,
+    val link: String,
+    val comments: MutableList<Comment>,
+    var likesCount: Int
+) {
+    constructor() : this("", "", "", "", "", mutableListOf(), 0)
+
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "uid" to uid,
+            "username" to username,
+            "description" to description,
+            "imageUrl" to imageUrl,
+            "link" to link,
+            "comments" to comments,
+            "likesCount" to likesCount
+        )
+    }
+}
+
+data class Comment(
+    val commenterId: String,
+    val commenterUsername: String,
+    val commentText: String
+)
+

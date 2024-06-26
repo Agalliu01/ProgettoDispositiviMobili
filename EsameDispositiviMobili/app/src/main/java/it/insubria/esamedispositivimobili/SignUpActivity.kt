@@ -9,15 +9,12 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageReference
 import java.io.Serializable
-import java.util.*
 
 class SignUpActivity : AppCompatActivity() {
+
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -77,14 +74,31 @@ class SignUpActivity : AppCompatActivity() {
 
         userRef.set(userDetails)
             .addOnSuccessListener {
-                // Dopo aver salvato userDetails con successo, passa alla prossima activity
-                navigateToSignUpUsernameActivity(userDetails)
+                // Dopo aver salvato userDetails con successo, aggiungi questo utente alla lista dei seguiti dell'utente corrente
+                addCurrentUserToFollowList(userDetails)
             }
             .addOnFailureListener { e ->
                 // Gestione errori durante il salvataggio
                 Toast.makeText(this, "Errore durante il salvataggio dei dettagli utente", Toast.LENGTH_SHORT).show()
                 Log.e(TAG, "Error saving user details", e)
             }
+    }
+
+    private fun addCurrentUserToFollowList(userDetails: UserDetails) {
+        val currentUserUid = auth.currentUser?.uid
+        if (currentUserUid != null) {
+            db.collection("users").document(currentUserUid)
+                .update("seguiti", userDetails.username)
+                .addOnSuccessListener {
+                    navigateToSignUpUsernameActivity(userDetails)
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Errore durante l'aggiunta agli utenti seguiti", Toast.LENGTH_SHORT).show()
+                    Log.e(TAG, "Error adding user to follow list", e)
+                }
+        } else {
+            Toast.makeText(this, "Utente corrente non trovato", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun navigateToSignUpUsernameActivity(userDetails: UserDetails) {
@@ -95,6 +109,7 @@ class SignUpActivity : AppCompatActivity() {
     }
 }
 
+
 data class UserDetails(
     val nome: String,
     val cognome: String,
@@ -102,7 +117,12 @@ data class UserDetails(
     val password: String,
     var username: String = "", // Username opzionale
     val seguiti: MutableList<String> = mutableListOf(), // Lista degli username degli account seguiti
-    val follower: MutableList<String> = mutableListOf(), // Lista degli username dei follower
     var imageUrl: String = "" // URL dell'immagine associata su Firebase Storage
-) : Serializable
+) : Serializable {
+    // Costruttore senza argomenti richiesto da Firebase Firestore
+    constructor() : this("", "", "", "", "", mutableListOf())
+    constructor(userId: String, s: String, s1: String) : this()
+}
+
+
 
