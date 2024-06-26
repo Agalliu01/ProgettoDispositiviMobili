@@ -37,6 +37,8 @@ android {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation ("androidx.appcompat:appcompat:1.7.0")

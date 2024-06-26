@@ -1,11 +1,12 @@
 package it.insubria.esamedispositivimobili
 
+import AddPostFragment
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import it.insubria.esamedispositivimobili.AddPostFragment
+
 import it.insubria.esamedispositivimobili.HomeFragment
 import it.insubria.esamedispositivimobili.R
 import it.insubria.esamedispositivimobili.SearchFragment
