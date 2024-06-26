@@ -1,16 +1,21 @@
 package it.insubria.esamedispositivimobili
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.gms.tasks.Tasks
+import androidx.core.net.toUri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import java.io.Serializable
+import java.util.*
 
 class SignUpActivity : AppCompatActivity() {
 
@@ -32,7 +37,7 @@ class SignUpActivity : AppCompatActivity() {
         val loginMover = findViewById<TextView>(R.id.loginMover)
 
         loginMover.setOnClickListener {
-            val intent = Intent(this,LoginMainActivity::class.java)
+            val intent = Intent(this, LoginMainActivity::class.java)
             startActivity(intent)
         }
 
@@ -57,12 +62,28 @@ class SignUpActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Registrazione utente con successo, passa alla seconda activity
                     val userDetails = UserDetails(nome, cognome, email, password)
-                    navigateToSignUpUsernameActivity(userDetails)
+                    saveUserDetails(userDetails)
                 } else {
                     // Gestione errori durante la registrazione
                     val errorMessage = task.exception?.message ?: "Errore durante la registrazione"
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
                 }
+            }
+    }
+
+    private fun saveUserDetails(userDetails: UserDetails) {
+        // Salva userDetails in Firestore
+        val userRef = db.collection("users").document(auth.currentUser!!.uid)
+
+        userRef.set(userDetails)
+            .addOnSuccessListener {
+                // Dopo aver salvato userDetails con successo, passa alla prossima activity
+                navigateToSignUpUsernameActivity(userDetails)
+            }
+            .addOnFailureListener { e ->
+                // Gestione errori durante il salvataggio
+                Toast.makeText(this, "Errore durante il salvataggio dei dettagli utente", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "Error saving user details", e)
             }
     }
 
@@ -73,10 +94,15 @@ class SignUpActivity : AppCompatActivity() {
         finish()
     }
 }
+
 data class UserDetails(
     val nome: String,
     val cognome: String,
     val email: String,
     val password: String,
-    var username: String = "" // Username opzionale
+    var username: String = "", // Username opzionale
+    val seguiti: MutableList<String> = mutableListOf(), // Lista degli username degli account seguiti
+    val follower: MutableList<String> = mutableListOf(), // Lista degli username dei follower
+    var imageUrl: String = "" // URL dell'immagine associata su Firebase Storage
 ) : Serializable
+
