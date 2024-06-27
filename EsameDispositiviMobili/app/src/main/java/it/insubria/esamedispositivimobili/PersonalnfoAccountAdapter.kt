@@ -1,59 +1,78 @@
 package it.insubria.esamedispositivimobili
 
-import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class PersonalnfoAccountAdapter(
+    private val context: Context,
+    private var userDetails: UserDetails,
+    private val onSaveClickListener: OnSaveClickListener
+) : RecyclerView.Adapter<PersonalnfoAccountAdapter.ViewHolder>() {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [PersonalnfoAccountAdapter.newInstance] factory method to
- * create an instance of this fragment.
- */
-class PersonalnfoAccountAdapter : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private val db = FirebaseFirestore.getInstance()
+    private val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+    interface OnSaveClickListener {
+        fun onSaveChanges(userDetails: UserDetails)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_personalnfo_account_adapter, container, false)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.fragment_personalnfo_account_adapter, parent, false)
+        return ViewHolder(view)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment PersonalnfoAccountAdapter.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            PersonalnfoAccountAdapter().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(userDetails)
+    }
+
+    override fun getItemCount(): Int {
+        // Considera il numero di campi da visualizzare/modificare (es. nome, cognome, email, username, password)
+        return 1
+    }
+
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val nomeEditText: EditText = itemView.findViewById(R.id.nomeEditText)
+        private val cognomeEditText: EditText = itemView.findViewById(R.id.cognomeEditText)
+        private val emailEditText: EditText = itemView.findViewById(R.id.emailEditText)
+        private val usernameEditText: EditText = itemView.findViewById(R.id.usernameEditText)
+        private val passwordEditText: EditText = itemView.findViewById(R.id.passwordEditText)
+        private val saveChangesButton: Button = itemView.findViewById(R.id.validateChangesButton)
+
+        init {
+            saveChangesButton.setOnClickListener {
+                val nome = nomeEditText.text.toString().trim()
+                val cognome = cognomeEditText.text.toString().trim()
+                val email = emailEditText.text.toString().trim()
+                val username = usernameEditText.text.toString().trim()
+                val password = passwordEditText.text.toString().trim()
+
+                // Crea un oggetto UserDetails con le modifiche
+                val updatedUserDetails = UserDetails(
+                    nome = nome,
+                    cognome = cognome,
+                    email = email,
+                    username = username,
+                    password = password
+                )
+
+                // Chiamata al listener per salvare le modifiche
+                onSaveClickListener.onSaveChanges(updatedUserDetails)
             }
+        }
+
+        fun bind(userDetails: UserDetails) {
+            nomeEditText.setText(userDetails.nome)
+            cognomeEditText.setText(userDetails.cognome)
+            emailEditText.setText(userDetails.email)
+            usernameEditText.setText(userDetails.username)
+            passwordEditText.setText(userDetails.password)
+        }
     }
 }
