@@ -3,6 +3,7 @@ package it.insubria.esamedispositivimobili
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -59,10 +60,15 @@ class SearchFragment : Fragment(), UserAdapter.OnItemClickListener {
             .addOnSuccessListener { documents ->
                 userList.clear()
                 for (document in documents) {
-                    val user = document.toObject(UserDetails::class.java)
-                    // Escludi l'utente corrente
-                    if (user.username != currentUserUid) {
-                        userList.add(user)
+                    try {
+                        val user = document.toObject(UserDetails::class.java)
+                        // Escludi l'utente corrente
+                        if (user.username != currentUserUid) {
+                            userList.add(user)
+                        }
+                    } catch (e: Exception) {
+                        // Gestisci l'eccezione nel caso in cui la deserializzazione fallisca
+                        Log.e("Firestore", "Error converting document", e)
                     }
                 }
                 filteredUserList = userList
@@ -70,8 +76,10 @@ class SearchFragment : Fragment(), UserAdapter.OnItemClickListener {
             }
             .addOnFailureListener { exception ->
                 // Gestisci l'errore
+                Log.e("Firestore", "Error getting documents", exception)
             }
     }
+
 
     private fun filterUsers(query: String) {
         filteredUserList = if (query.isEmpty()) {
@@ -91,32 +99,42 @@ class SearchFragment : Fragment(), UserAdapter.OnItemClickListener {
             db.collection("users").document(userId).get()
                 .addOnSuccessListener { document ->
                     if (document != null && document.exists()) {
-                        val followedUsers = document.get("followedUsers") as? ArrayList<String> ?: arrayListOf()
+                        val followedUsers = document.get("followedUsers")
 
-                        if (followedUsers.contains(user.username)) {
-                            // Utente già seguito, quindi rimuovilo
-                            followedUsers.remove(user.username)
-                            followButton.text = "Segui"
+                        if (followedUsers is ArrayList<*>) {
+                            val usersList = followedUsers.filterIsInstance<String>().toMutableList()
+
+                            if (usersList.contains(user.username)) {
+                                // Utente già seguito, quindi rimuovilo
+                                usersList.remove(user.username)
+                                followButton.text = "Segui"
+                            } else {
+                                // Utente non seguito, quindi aggiungilo
+                                usersList.add(user.username)
+                                followButton.text = "Non seguire più"
+                            }
+
+                            // Aggiorna nel database
+                            db.collection("users").document(userId)
+                                .update("followedUsers", usersList)
+                                .addOnSuccessListener {
+                                    // Aggiornamento riuscito
+                                }
+                                .addOnFailureListener { e ->
+                                    // Gestione dell'errore nell'aggiornamento
+                                    Log.e("FirestoreUpdate", "Error updating followedUsers", e)
+                                }
                         } else {
-                            // Utente non seguito, quindi aggiungilo
-                            followedUsers.add(user.username)
-                            followButton.text = "Non seguire più"
+                            // Gestisci il caso in cui followedUsers non sia un ArrayList<String>
+                            Log.e("FirestoreUpdate", "followedUsers is not an ArrayList<String>")
                         }
-
-                        // Aggiorna nel database
-                        db.collection("users").document(userId)
-                            .update("followedUsers", followedUsers)
-                            .addOnSuccessListener {
-                                // Aggiornamento riuscito
-                            }
-                            .addOnFailureListener { e ->
-                                // Gestione dell'errore nell'aggiornamento
-                            }
                     }
                 }
                 .addOnFailureListener { exception ->
                     // Gestione dell'errore nel caricamento dei dati dell'utente corrente
+                    Log.e("FirestoreUpdate", "Error fetching document", exception)
                 }
         }
     }
+
 }

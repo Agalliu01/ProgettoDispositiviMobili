@@ -47,7 +47,6 @@ class FirstPageLoggedUserActivity : AppCompatActivity() {
                 }
 
                 R.id.navigation_settings -> {
-                    db=FirebaseFirestore.getInstance()
                     replaceFragment(SettingsFragment())
                     return@setOnNavigationItemSelectedListener true
                 }

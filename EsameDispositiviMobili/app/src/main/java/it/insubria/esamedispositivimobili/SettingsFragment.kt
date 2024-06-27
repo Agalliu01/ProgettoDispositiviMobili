@@ -1,15 +1,13 @@
 package it.insubria.esamedispositivimobili
 
 import android.app.Activity
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -23,6 +21,7 @@ import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
 
 class SettingsFragment : Fragment() {
+    // Dichiarazioni delle proprietà
     private lateinit var profileImageView: ImageView
     private lateinit var changeImageIcon: ImageView
     private lateinit var usernameTextView: TextView
@@ -30,10 +29,13 @@ class SettingsFragment : Fragment() {
     private lateinit var followingTextView: TextView
     private lateinit var nomeTextView: TextView
     private lateinit var cognomeTextView: TextView
-
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var followedUserAdapter: ViewFollowedUser
     private lateinit var db: FirebaseFirestore
     private lateinit var storage: FirebaseStorage
     private lateinit var storageRef: StorageReference
+    private var userList: List<UserDetails> = emptyList()
+    private var filteredUserList: List<UserDetails> = emptyList()
 
     private var imageUri: Uri? = null
 
@@ -43,6 +45,7 @@ class SettingsFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
+        // Inizializzazione delle viste
         profileImageView = view.findViewById(R.id.profileImageView)
         changeImageIcon = view.findViewById(R.id.changeImageIcon)
         usernameTextView = view.findViewById(R.id.usernameTextView)
@@ -51,104 +54,90 @@ class SettingsFragment : Fragment() {
         nomeTextView = view.findViewById(R.id.nomeTextView)
         cognomeTextView = view.findViewById(R.id.cognomeTextView)
 
-        db = FirebaseFirestore.getInstance()
+        // Inizializzazione della RecyclerView
+        recyclerView = view.findViewById(R.id.recyclerView) // Sostituisci con l'ID corretto della tua RecyclerView
 
+        // Inizializzazione di Firebase
+        db = FirebaseFirestore.getInstance()
         storage = FirebaseStorage.getInstance()
         storageRef = storage.reference
 
-        observeUserData()
+        // Inizializzazione dell'adapter per la RecyclerView
+        followedUserAdapter = ViewFollowedUser(requireContext(), userList, this)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.adapter = followedUserAdapter
 
+        // Gestione del click su FollowingTextView
+        followingTextView.setOnClickListener {
+            loadUsers()
+        }
+
+        // Gestione del click su profileImageView per cambiare l'immagine del profilo
         profileImageView.setOnClickListener {
             changeImageIcon.visibility = View.VISIBLE
         }
 
+        // Gestione del click su changeImageIcon per selezionare un'immagine da caricare
         changeImageIcon.setOnClickListener {
             val intent = Intent(Intent.ACTION_GET_CONTENT)
             intent.type = "image/*"
             startActivityForResult(intent, PICK_IMAGE_REQUEST)
         }
 
-        followingTextView.setOnClickListener {
-            val userId = FirebaseAuth.getInstance().currentUser?.uid
-            if (userId != null) {
-                db.collection("users").document(userId).get()
-                    .addOnSuccessListener { document ->
-                        if (document != null && document.exists()) {
-                            val followedUsers = document.get("followedUsers") as List<*>
-                            val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+        // Osserva i dati dell'utente e aggiorna l'UI di conseguenza
+        observeUserData()
 
-                            // Utente già seguito, quindi mostra l'elenco degli utenti seguiti
-                            showFollowedUsersDialog(followedUsers as ArrayList<String>)
-
-
-
-                        }
-                    }
-
-
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(context, "Errore nel caricamento dei dati dell'utente: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-            } else {
-                Toast.makeText(context, "Utente non autenticato", Toast.LENGTH_SHORT).show()
-            }
-        }
         return view
     }
 
-        // Funzione per mostrare un dialog con l'elenco degli utenti seguiti
-        private fun showFollowedUsersDialog(followedUsers: ArrayList<String>) {
-            // Inflate the dialog view with the appropriate layout
-            val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_followed_users, null)
+    // Metodo per caricare gli utenti seguiti dall'utente corrente
+    // Metodo per caricare gli utenti seguiti dall'utente corrente
+    private fun loadUsers() {
+        val db = FirebaseFirestore.getInstance()
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
-            // Find the RecyclerView in the dialog view
-            val recyclerView = dialogView.findViewById<RecyclerView>(R.id.followedUsersRecyclerView)
+        db.collection("users")
+            .get()
+            .addOnSuccessListener { documents ->
+                val tempUserList = mutableListOf<UserDetails>()
 
-            // Set up RecyclerView with LinearLayoutManager
-            recyclerView.layoutManager = LinearLayoutManager(context)
-
-            // Create and set adapter for the RecyclerView
-            val adapter = UserAdapter(requireContext(), getUserDetailsList(followedUsers), object : UserAdapter.OnItemClickListener {
-                override fun onItemClick(user: UserDetails, followButton: Button) {
-                    // Handle item click if needed
-                }
-            })
-            recyclerView.adapter = adapter
-
-            // Build and show the dialog
-            val dialogBuilder = AlertDialog.Builder(context)
-                .setView(dialogView)
-                .setTitle("Utenti Seguiti")
-                .setPositiveButton("Chiudi") { dialog, _ ->
-                    dialog.dismiss()
+                for (document in documents) {
+                    try {
+                        val user = document.toObject(UserDetails::class.java)
+                        // Escludi l'utente corrente
+                        if (user.username != currentUserUid) {
+                            tempUserList.add(user)
+                        }
+                    } catch (e: Exception) {
+                        // Gestisci l'eccezione nel caso in cui la deserializzazione fallisca
+                        Log.e("Firestore", "Error converting document", e)
+                    }
                 }
 
-            val dialog = dialogBuilder.create()
-            dialog.show()
-        }
-
-    // Helper function to convert followedUsers IDs to UserDetails list
-    private fun getUserDetailsList(followedUsers: ArrayList<String>): List<UserDetails> {
-        // Assuming you have a function to fetch UserDetails from IDs or you already have them
-        // This is just a placeholder, implement as per your logic
-        return followedUsers.map { userId ->
-            UserDetails(userId, "Username $userId", "https://example.com/$userId.jpg")
-        }
+                // Aggiorna la lista filtrata e l'adattatore
+                filteredUserList = tempUserList
+                followedUserAdapter.updateUsers(filteredUserList)
+            }
+            .addOnFailureListener { exception ->
+                // Gestisci l'errore
+                Log.e("Firestore", "Error getting documents", exception)
+            }
     }
 
 
-
+    // Metodo per osservare i dati dell'utente e aggiornare l'UI di conseguenza
     private fun observeUserData() {
-        // Simula il caricamento dei dati dell'utente
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
-                val followedUsers = document.get("followedUsers") as? List<String>
-                val followingCount = followedUsers?.size ?: 0
                 if (document != null && document.exists()) {
+                    val followedUsers = document.get("followedUsers") as? List<*>
+                    val followingCount = followedUsers?.size ?: 0
+
+                    // Aggiorna l'UI con i dati dell'utente
                     usernameTextView.text = document.getString("username") ?: ""
                     emailTextView.text = document.getString("email") ?: ""
-                    followingTextView.text = "Following: ${followingCount }"
+                    followingTextView.text = "Following: $followingCount"
                     nomeTextView.text = document.getString("nome") ?: ""
                     cognomeTextView.text = document.getString("cognome") ?: ""
                     Picasso.get().load(document.getString("imageUrl")).into(profileImageView)
@@ -159,6 +148,7 @@ class SettingsFragment : Fragment() {
             }
     }
 
+    // Gestione del risultato dell'attività di selezione immagine
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -168,6 +158,7 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    // Metodo per caricare un'immagine su Firebase Storage e aggiornare l'URL nell'utente corrente
     private fun uploadImageToFirebase() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null && imageUri != null) {
@@ -204,8 +195,4 @@ class SettingsFragment : Fragment() {
     companion object {
         private const val PICK_IMAGE_REQUEST = 71
     }
-
-
-
 }
-

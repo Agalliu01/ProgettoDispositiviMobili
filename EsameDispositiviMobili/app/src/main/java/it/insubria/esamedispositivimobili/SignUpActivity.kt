@@ -116,10 +116,20 @@ data class UserDetails(
     val email: String,
     val password: String,
     var username: String = "", // Username opzionale
-    val seguiti: MutableList<String> = mutableListOf(), // Lista degli username degli account seguiti
+    var seguiti: List<String> = emptyList() ,
     var imageUrl: String = "" // URL dell'immagine associata su Firebase Storage
 ) : Serializable {
     // Costruttore senza argomenti richiesto da Firebase Firestore
-    constructor() : this("", "", "", "", "", mutableListOf())
+    constructor() : this("", "", "", "", "", listOf(),"")
     constructor(userId: String, s: String, s1: String) : this()
+    @Suppress("UNCHECKED_CAST")
+    @JvmOverloads
+    fun fromString(data: String?, delimiter: String = ","): UserDetails {
+        if (data.isNullOrEmpty()) {
+            seguiti = emptyList()
+        } else {
+            seguiti = data.split(delimiter).map { it.trim() }
+        }
+        return this
+    }
 }
