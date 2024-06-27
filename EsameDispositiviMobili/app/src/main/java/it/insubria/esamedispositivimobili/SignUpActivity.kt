@@ -1,6 +1,5 @@
 package it.insubria.esamedispositivimobili
 
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,11 +9,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import java.io.Serializable
 
 class SignUpActivity : AppCompatActivity() {
-
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -34,8 +33,7 @@ class SignUpActivity : AppCompatActivity() {
         val loginMover = findViewById<TextView>(R.id.loginMover)
 
         loginMover.setOnClickListener {
-            val intent = Intent(this, LoginMainActivity::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, LoginMainActivity::class.java))
         }
 
         continuaButton.setOnClickListener {
@@ -47,7 +45,6 @@ class SignUpActivity : AppCompatActivity() {
             if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Tutti i campi sono obbligatori", Toast.LENGTH_SHORT).show()
             } else {
-                // Registrazione utente con Firebase Authentication
                 registerUser(nome, cognome, email, password)
             }
         }
@@ -57,48 +54,30 @@ class SignUpActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Registrazione utente con successo, passa alla seconda activity
                     val userDetails = UserDetails(nome, cognome, email, password)
                     saveUserDetails(userDetails)
                 } else {
-                    // Gestione errori durante la registrazione
                     val errorMessage = task.exception?.message ?: "Errore durante la registrazione"
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
+
+                    if (task.exception is FirebaseAuthUserCollisionException) {
+                        Toast.makeText(this, "Questa email è già associata a un altro account", Toast.LENGTH_SHORT).show()
+                        Log.w("SignUpActivity", "createUserWithEmailAndPassword:failure", task.exception)
+                    }
                 }
             }
     }
 
     private fun saveUserDetails(userDetails: UserDetails) {
-        // Salva userDetails in Firestore
-        val userRef = db.collection("users").document(auth.currentUser!!.uid)
-
-        userRef.set(userDetails)
+        db.collection("users").document(auth.currentUser!!.uid)
+            .set(userDetails)
             .addOnSuccessListener {
-                // Dopo aver salvato userDetails con successo, aggiungi questo utente alla lista dei seguiti dell'utente corrente
-                addCurrentUserToFollowList(userDetails)
+                navigateToSignUpUsernameActivity(userDetails)
             }
             .addOnFailureListener { e ->
-                // Gestione errori durante il salvataggio
                 Toast.makeText(this, "Errore durante il salvataggio dei dettagli utente", Toast.LENGTH_SHORT).show()
-                Log.e(TAG, "Error saving user details", e)
+                Log.e("SignUpActivity", "Error saving user details", e)
             }
-    }
-
-    private fun addCurrentUserToFollowList(userDetails: UserDetails) {
-        val currentUserUid = auth.currentUser?.uid
-        if (currentUserUid != null) {
-            db.collection("users").document(currentUserUid)
-                .update("seguiti", userDetails.username)
-                .addOnSuccessListener {
-                    navigateToSignUpUsernameActivity(userDetails)
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Errore durante l'aggiunta agli utenti seguiti", Toast.LENGTH_SHORT).show()
-                    Log.e(TAG, "Error adding user to follow list", e)
-                }
-        } else {
-            Toast.makeText(this, "Utente corrente non trovato", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun navigateToSignUpUsernameActivity(userDetails: UserDetails) {
@@ -107,29 +86,45 @@ class SignUpActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
 }
 
 
+
 data class UserDetails(
-    val nome: String,
-    val cognome: String,
-    val email: String,
-    val password: String,
-    var username: String = "", // Username opzionale
-    var seguiti: List<String> = emptyList() ,
-    var imageUrl: String = "" // URL dell'immagine associata su Firebase Storage
+    val nome: String = "",
+    val cognome: String = "",
+    val email: String = "",
+    val password: String = "",
+    var username: String = "",
+    var seguiti: MutableList<String> = mutableListOf(),
+    var imageUrl: String = ""
 ) : Serializable {
-    // Costruttore senza argomenti richiesto da Firebase Firestore
-    constructor() : this("", "", "", "", "", listOf(),"")
-    constructor(userId: String, s: String, s1: String) : this()
-    @Suppress("UNCHECKED_CAST")
-    @JvmOverloads
-    fun fromString(data: String?, delimiter: String = ","): UserDetails {
+
+    // Costruttore vuoto richiesto da Firebase Firestore
+    constructor() : this("", "", "", "", "", mutableListOf(), "")
+
+    // Metodo per aggiungere un utente seguito
+    fun addSeguito(user: String) {
+        seguiti.add(user)
+    }
+
+    // Metodo per rimuovere un utente seguito
+    fun removeSeguito(user: String) {
+        seguiti.remove(user)
+    }
+
+    // Metodo per ottenere la rappresentazione come stringa dei seguiti
+    fun seguitiToString(delimiter: String = ","): String {
+        return seguiti.joinToString(delimiter)
+    }
+
+    // Metodo per impostare i seguiti da una stringa
+    fun seguitiFromString(data: String?, delimiter: String = ",") {
         if (data.isNullOrEmpty()) {
-            seguiti = emptyList()
+            seguiti = mutableListOf()
         } else {
-            seguiti = data.split(delimiter).map { it.trim() }
+            seguiti = data.split(delimiter).map { it.trim() }.toMutableList()
         }
-        return this
     }
 }

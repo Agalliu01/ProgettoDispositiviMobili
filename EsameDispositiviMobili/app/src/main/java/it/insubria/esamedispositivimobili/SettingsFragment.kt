@@ -67,10 +67,22 @@ class SettingsFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = followedUserAdapter
 
+
+
+
         // Gestione del click su FollowingTextView
         followingTextView.setOnClickListener {
             loadUsers()
         }
+
+        //da inizializzare adapter
+
+        nomeTextView.setOnClickListener {
+            changeInfoAccount()
+        }
+
+
+
 
         // Gestione del click su profileImageView per cambiare l'immagine del profilo
         profileImageView.setOnClickListener {
@@ -88,6 +100,23 @@ class SettingsFragment : Fragment() {
         observeUserData()
 
         return view
+    }
+
+    private fun changeInfoAccount() {
+        TODO("Not yet implemented")
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     // Metodo per caricare gli utenti seguiti dall'utente corrente
@@ -137,10 +166,20 @@ class SettingsFragment : Fragment() {
                     // Aggiorna l'UI con i dati dell'utente
                     usernameTextView.text = document.getString("username") ?: ""
                     emailTextView.text = document.getString("email") ?: ""
-                    followingTextView.text = "Following: $followingCount"
+                    followingTextView.text = "Seguiti : $followingCount"
                     nomeTextView.text = document.getString("nome") ?: ""
                     cognomeTextView.text = document.getString("cognome") ?: ""
-                    Picasso.get().load(document.getString("imageUrl")).into(profileImageView)
+
+                    val imageUrl = document.getString("imageUrl")
+                    if (!imageUrl.isNullOrEmpty()) {
+                        Picasso.get().load(imageUrl).into(profileImageView)
+                    } else {
+                        // Gestione del caso in cui imageUrl sia vuoto o null, ad esempio, impostando un'immagine di default
+                        Picasso.get().load(R.drawable.ic_launcher_background).into(profileImageView)
+                    }
+
+
+                //    Picasso.get().load(document.getString("imageUrl")).into(profileImageView)
                 }
             }
             .addOnFailureListener { exception ->
