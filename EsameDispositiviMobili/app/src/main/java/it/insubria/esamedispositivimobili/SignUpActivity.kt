@@ -123,6 +123,3 @@ data class UserDetails(
     constructor() : this("", "", "", "", "", mutableListOf())
     constructor(userId: String, s: String, s1: String) : this()
 }
-
-
-

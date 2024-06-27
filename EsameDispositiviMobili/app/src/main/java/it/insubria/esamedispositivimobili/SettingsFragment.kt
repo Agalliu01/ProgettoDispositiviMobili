@@ -77,16 +77,15 @@ class SettingsFragment : Fragment() {
                             val followedUsers = document.get("followedUsers") as List<*>
                             val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
-                            if (currentUserUid != null) {
-                                if (followedUsers.contains(currentUserUid)) {
-                                    // Utente già seguito, quindi mostra l'elenco degli utenti seguiti
-                                    showFollowedUsersDialog(followedUsers as ArrayList<String>)
-                                } else {
-                                    Toast.makeText(context, "Non stai seguendo nessun utente al momento", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                            // Utente già seguito, quindi mostra l'elenco degli utenti seguiti
+                            showFollowedUsersDialog(followedUsers as ArrayList<String>)
+
+
+
                         }
                     }
+
+
                     .addOnFailureListener { exception ->
                         Toast.makeText(context, "Errore nel caricamento dei dati dell'utente: ${exception.message}", Toast.LENGTH_SHORT).show()
                     }
@@ -144,10 +143,12 @@ class SettingsFragment : Fragment() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         db.collection("users").document(userId).get()
             .addOnSuccessListener { document ->
+                val followedUsers = document.get("followedUsers") as? List<String>
+                val followingCount = followedUsers?.size ?: 0
                 if (document != null && document.exists()) {
                     usernameTextView.text = document.getString("username") ?: ""
                     emailTextView.text = document.getString("email") ?: ""
-                    followingTextView.text = "Following: ${document.getLong("following") ?: 0}"
+                    followingTextView.text = "Following: ${followingCount }"
                     nomeTextView.text = document.getString("nome") ?: ""
                     cognomeTextView.text = document.getString("cognome") ?: ""
                     Picasso.get().load(document.getString("imageUrl")).into(profileImageView)
