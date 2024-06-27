@@ -62,8 +62,9 @@
                     android:id="@+id/followingTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Following"
-                    android:textSize="16sp"
+                    android:text="Seguiti:"
+                    android:textColor="#039BE5"
+                    android:textSize="25sp"
                     android:paddingBottom="16dp" />
 
                 <!-- Campo per il nome -->
@@ -161,6 +162,14 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
+                <Button
+                    android:id="@+id/logoutBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Logout"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#E53935" />
 
             </LinearLayout>
         </LinearLayout>
