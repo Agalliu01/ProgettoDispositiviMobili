@@ -21,6 +21,14 @@
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": []
+        },
+        "appcheck": {
+          "providers": [
+            {
+              "name": "google_play_services",
+              "development_mode": true
+            }
+          ]
         }
       }
     }

@@ -2,7 +2,11 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+
 }
+
+
+
 
 android {
     namespace = "it.insubria.esamedispositivimobili"
@@ -40,6 +44,14 @@ android {
 }
 
 dependencies {
+
+    implementation ("com.google.firebase:firebase-messaging:23.0.1")
+    implementation("com.google.firebase:firebase-database:20.1.0")
+
+    implementation("com.google.firebase:firebase-appcheck:16.0.0")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity:16.0.0")
+    implementation("com.google.firebase:firebase-appcheck-safetynet:16.0.0")
+
     implementation ("com.squareup.picasso:picasso:2.71828")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

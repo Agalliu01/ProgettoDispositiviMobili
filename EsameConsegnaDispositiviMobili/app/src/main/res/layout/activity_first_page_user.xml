@@ -1,0 +1,42 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- ScrollView per contenuto scrollabile sopra la BottomNavigationView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavigationView">
+
+        <!-- Contenuto scrollabile -->
+        <LinearLayout
+            android:id="@+id/scrollableContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Aggiungi qui il contenuto che vuoi rendere scrollabile -->
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- FrameLayout per il contenitore dei fragment -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavigationView" />
+
+    <!-- BottomNavigationView per la navigazione tra i fragment -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        app:itemTextColor="@color/black"
+        app:itemRippleColor="#1E88E5"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#1E88E5"
+        app:menu="@menu/bottom_navigation_menu" />
+
+</RelativeLayout>

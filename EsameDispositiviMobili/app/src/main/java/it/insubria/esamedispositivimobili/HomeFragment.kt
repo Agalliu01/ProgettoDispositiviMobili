@@ -1,6 +1,6 @@
 package it.insubria.esamedispositivimobili
 
-import Post
+
 import PostAdapter
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -17,11 +17,15 @@ import android.widget.Button
 import android.widget.Toast
 
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 
 class HomeFragment : Fragment() {
+
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var postAdapter: PostAdapter
@@ -47,20 +51,21 @@ class HomeFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Inizializza RecyclerView
+        // Initialize RecyclerView
         recyclerView = view.findViewById(R.id.recyclerViewHome)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Inizializza bottoni
+        // Initialize buttons
         btnAllPosts = view.findViewById(R.id.btn_tutti)
         btnFollowedPosts = view.findViewById(R.id.btn_seguiti)
         btnMyPosts = view.findViewById(R.id.btn_personali)
+        val listVuota = mutableListOf<Post>()
 
-        // Inizializza adapter per RecyclerView
-        postAdapter = PostAdapter(emptyList(), false) // false perché non è nella sezione "Personali"
+        // Initialize RecyclerView Adapter
+        postAdapter = PostAdapter(listVuota, false) // false because not in "My Posts" section
         recyclerView.adapter = postAdapter
 
-        // Gestione dei click sui bottoni
+        // Button click handlers
         btnAllPosts.setOnClickListener {
             currentSection = Section.ALL_POSTS
             loadPosts()
@@ -76,7 +81,7 @@ class HomeFragment : Fragment() {
             loadPosts()
         }
 
-        // Inizialmente carica tutti i post degli utenti
+        // Initially load all posts
         loadPosts()
 
         return view
@@ -102,34 +107,70 @@ class HomeFragment : Fragment() {
                 postAdapter.setData(posts)
             }
             .addOnFailureListener { exception ->
-                // Gestire l'errore
+                // Handle error
+                Toast.makeText(requireContext(), "Errore nel caricamento dei post", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun loadFollowedPosts() {
-        // Implementa la logica per caricare i post degli utenti seguiti
-        // Supponiamo che ci sia una lista di utenti seguiti
-        val followedUsers = listOf("user1", "user2") // Esempio
+        val currentUserId = currentUser?.uid ?: return
 
-        firebaseFirestore.collection("posts")
-            .whereIn("username", followedUsers)
+        firebaseFirestore.collection("users")
+            .document(currentUserId)
             .get()
-            .addOnSuccessListener { documents ->
-                val posts = mutableListOf<Post>()
-                for (document in documents) {
-                    val post = document.toObject(Post::class.java)
-                    posts.add(post)
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val followedUsers = document.get("followedUsers") as? List<String>
+
+                    if (followedUsers != null && followedUsers.isNotEmpty()) {
+                        val postsPromises = mutableListOf<Task<QuerySnapshot>>()
+                        followedUsers.forEach { username ->
+                            val promise = firebaseFirestore.collection("posts")
+                                .whereEqualTo("username", username)
+                                .get()
+                            postsPromises.add(promise)
+                        }
+
+                        Tasks.whenAllSuccess<QuerySnapshot>(postsPromises)
+                            .addOnSuccessListener { snapshots ->
+                                val posts = mutableListOf<Post>()
+                                snapshots.forEach { snapshot ->
+                                    snapshot.documents.forEach { document ->
+                                        val post = document.toObject(Post::class.java)
+                                        if (post != null) {
+                                            posts.add(post)
+                                        }
+                                    }
+                                }
+                                requireActivity().runOnUiThread {
+                                    postAdapter.setData(posts)
+                                }
+                            }
+                            .addOnFailureListener { exception ->
+                                // Handle error
+                                Toast.makeText(requireContext(), "Errore nel caricamento dei post seguiti", Toast.LENGTH_SHORT).show()
+                            }
+                    } else {
+                        // No followed users, handle accordingly
+                        requireActivity().runOnUiThread {
+                            postAdapter.setData(emptyList())
+                        }
+                    }
+                } else {
+                    // User document not found, handle accordingly
+                    requireActivity().runOnUiThread {
+                        postAdapter.setData(emptyList())
+                    }
                 }
-                postAdapter.setData(posts)
             }
             .addOnFailureListener { exception ->
-                // Gestire l'errore
+                // Handle error
+                Toast.makeText(requireContext(), "Errore nel caricamento dei dati utente", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun loadMyPosts() {
-        val currentUserId = currentUser?.uid ?: return
-
+        val currentUserId = currentUser?.uid ?: ""
         firebaseFirestore.collection("posts")
             .whereEqualTo("uid", currentUserId)
             .get()
@@ -139,11 +180,12 @@ class HomeFragment : Fragment() {
                     val post = document.toObject(Post::class.java)
                     posts.add(post)
                 }
-                postAdapter = PostAdapter(posts, true) // true perché è nella sezione "Personali"
+                postAdapter = PostAdapter(posts, true) // true because in "My Posts" section
                 recyclerView.adapter = postAdapter
             }
             .addOnFailureListener { exception ->
-                // Gestire l'errore
+                // Handle error
+                Toast.makeText(requireContext(), "Errore nel caricamento dei tuoi post", Toast.LENGTH_SHORT).show()
             }
     }
 }

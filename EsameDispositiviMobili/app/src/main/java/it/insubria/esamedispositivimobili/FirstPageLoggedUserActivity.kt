@@ -1,6 +1,6 @@
 package it.insubria.esamedispositivimobili
 
-import AddPostFragment
+
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
