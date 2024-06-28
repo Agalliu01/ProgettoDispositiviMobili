@@ -17,7 +17,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import it.insubria.esamedispositivimobili.HomeFragment
-import it.insubria.esamedispositivimobili.LoginMainActivity
 import it.insubria.esamedispositivimobili.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,36 +98,37 @@ class AddPostFragment : Fragment() {
         val link = linkEditText.text.toString().trim()
         val user = firebaseAuth.currentUser
 
+        // Non è necessario controllare se l'utente ha un username valido
+
         if (user != null) {
             if (imageUri != null) {
-                // Upload image with additional processing if needed
+                // Upload dell'immagine con ulteriore elaborazione se necessario
                 CoroutineScope(Dispatchers.IO).launch {
                     uploadImageAndPost(description, link, user)
                 }
             } else {
-                // If no image is selected, proceed to upload post without image
+                // Se non viene selezionata alcuna immagine, procedi con il caricamento del post senza immagine
                 CoroutineScope(Dispatchers.IO).launch {
                     uploadPostWithoutImage(description, link, user)
                 }
             }
         } else {
-            // Handle case where user is not authenticated
-            Toast.makeText(requireContext(), "Please login to create a post", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(requireContext(),LoginMainActivity::class.java))
+            // L'utente non è autenticato (sarebbe gestito da altre logiche, ad esempio navigazione al login)
+            Toast.makeText(requireContext(), "Utente non autenticato", Toast.LENGTH_SHORT).show()
         }
     }
 
     private suspend fun uploadImageAndPost(description: String, link: String, user: FirebaseUser) {
         try {
-            // Generate a random image name
+            // Genera un nome casuale per l'immagine
             val imageName = UUID.randomUUID().toString()
             val imageRef = storage.reference.child("images/$imageName")
 
-            // Upload image to Firebase Storage
+            // Upload dell'immagine su Firebase Storage
             val uploadTask = imageRef.putFile(imageUri!!).await()
             val downloadUrl = imageRef.downloadUrl.await()
 
-            // Create a new post object with image URL and link
+            // Creazione di un nuovo oggetto post con URL dell'immagine e link
             val username = user.displayName ?: user.email ?: "Anonymous"
             val uid = user.uid
 
@@ -138,15 +138,14 @@ class AddPostFragment : Fragment() {
                 description = description,
                 imageUrl = downloadUrl.toString(),
                 link = link,
-                comments = mutableListOf(),
                 likesCount = 0
             )
 
-            // Add the post to Firestore
+            // Aggiungi il post a Firestore
             addPostToFirestore(post)
 
         } catch (e: Exception) {
-            // Handle failure
+            // Gestione del fallimento
             withContext(Dispatchers.Main) {
                 Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
@@ -155,7 +154,7 @@ class AddPostFragment : Fragment() {
 
     private suspend fun uploadPostWithoutImage(description: String, link: String, user: FirebaseUser) {
         try {
-            // Create a new post object without image URL but with link
+            // Creazione di un nuovo oggetto post senza URL dell'immagine ma con link
             val username = user.displayName ?: user.email ?: "Anonymous"
             val uid = user.uid
 
@@ -165,38 +164,37 @@ class AddPostFragment : Fragment() {
                 description = description,
                 imageUrl = "",
                 link = link,
-                comments = mutableListOf(),
                 likesCount = 0
             )
 
-            // Add the post to Firestore
+            // Aggiungi il post a Firestore
             addPostToFirestore(post)
 
         } catch (e: Exception) {
-            // Handle failure
+            // Gestione del fallimento
             withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Failed to add post to Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Impossibile aggiungere il post a Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private suspend fun addPostToFirestore(post: Post) {
         try {
-            // Add the post to Firestore
+            // Aggiungi il post a Firestore
             firestore.collection("posts").add(post.toMap()).await()
 
-            // Handle success
+            // Gestione del successo
             withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Post uploaded successfully", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Post caricato con successo", Toast.LENGTH_SHORT).show()
 
-                // Navigate to HomeFragment after successful upload
+                // Naviga a HomeFragment dopo il caricamento riuscito
                 navigateBack()
             }
 
         } catch (e: Exception) {
-            // Handle failure
+            // Gestione del fallimento
             withContext(Dispatchers.Main) {
-                Toast.makeText(requireContext(), "Failed to add post to Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Impossibile aggiungere il post a Firestore: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -204,22 +202,24 @@ class AddPostFragment : Fragment() {
     private fun navigateBack() {
         val fragmentManager: FragmentManager = requireActivity().supportFragmentManager
 
-        // Replace current fragment with HomeFragment without adding to back stack
+        // Sostituisci il fragment corrente con HomeFragment senza aggiungerlo allo stack
         fragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer,HomeFragment())
+            .replace(R.id.fragmentContainer, HomeFragment())
             .commit()
     }
 }
+
 data class Post(
     val uid: String,
     val username: String,
     val description: String,
     val imageUrl: String,
     val link: String,
-    val comments: MutableList<Comment>,
-    var likesCount: Int
-) {
-    constructor() : this("", "", "", "", "", mutableListOf(), 0)
+    var likesCount: Int,
+    var likedBy: MutableList<String> = mutableListOf() // Lista degli utenti che hanno messo "mi piace"
+)
+ {
+    constructor() : this("", "", "", "", "", 0)
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -228,15 +228,8 @@ data class Post(
             "description" to description,
             "imageUrl" to imageUrl,
             "link" to link,
-            "comments" to comments,
-            "likesCount" to likesCount
+            "likesCount" to likesCount,
+            "likedBy " to likedBy
         )
     }
 }
-
-data class Comment(
-    val commenterId: String,
-    val commenterUsername: String,
-    val commentText: String
-)
-
