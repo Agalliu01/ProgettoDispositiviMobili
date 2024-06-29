@@ -12,6 +12,7 @@ data class Comment(
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
+            "imageProfile" to imageProfile,
             "uid" to uid,
             "username" to username,
             "text" to text

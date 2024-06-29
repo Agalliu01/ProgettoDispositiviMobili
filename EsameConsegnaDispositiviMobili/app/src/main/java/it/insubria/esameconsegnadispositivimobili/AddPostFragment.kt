@@ -114,6 +114,9 @@ class AddPostFragment : Fragment() {
 
         val newPostRef = postsRef.push()
 
+        // Genera un identificatore univoco per commentsUidLista
+        val commentsUidLista = newPostRef.child("comments").push().key ?: ""
+
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("images/${newPostRef.key}.jpg")
         val uploadTask = imageRef.putFile(selectedImageUri!!)
@@ -132,12 +135,14 @@ class AddPostFragment : Fragment() {
 
             val post = Post(
               uid = newPostRef.key ?: "",
+              uidAccount = currentUser.uid,
               username = username,
               description = description,
               imageUrl = imageUrl,
               link = link,
               likedBy = mutableListOf(),
-              comments = mutableListOf() // Lista vuota, senza commenti iniziali
+              comments = mutableListOf(), // Lista vuota, senza commenti iniziali
+              commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
             )
 
             newPostRef.setValue(post)

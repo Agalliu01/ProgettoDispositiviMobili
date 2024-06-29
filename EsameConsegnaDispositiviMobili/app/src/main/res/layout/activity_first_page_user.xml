@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Aggiungi qui il contenuto che vuoi rendere scrollabile -->
+
 
         </LinearLayout>
     </ScrollView>

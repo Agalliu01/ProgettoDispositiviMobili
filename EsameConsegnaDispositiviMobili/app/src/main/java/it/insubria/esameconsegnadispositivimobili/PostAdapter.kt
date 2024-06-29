@@ -1,6 +1,7 @@
 package it.insubria.esameconsegnadispositivimobili
 
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.Firebase
@@ -17,19 +19,24 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseException
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.childEvents
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+
 import kotlinx.coroutines.launch
 
 class PostAdapter(
     private var postList: MutableList<Post>,
     private val isPersonalSection: Boolean
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+
 
     private val TAG = "PostAdapter"
 
@@ -38,6 +45,7 @@ class PostAdapter(
     private lateinit var currentUser: FirebaseUser
     private var currentUserProfileImageUrl: String? = null
     private var isProfileImageLoaded = false
+    private lateinit var recyclerView: RecyclerView
 
     init {
         currentUser = auth.currentUser!!
@@ -45,18 +53,33 @@ class PostAdapter(
         listenForPostChanges()
     }
 
+
+
+
+
+
+
     private fun loadCurrentUserProfileImage() {
         val uid = currentUser.uid
-        val userRef = database.getReference("users").child(uid)
+        val userRef = database.getReference("users").child(uid).child("profileImageUrl")
 
         userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    currentUserProfileImageUrl = snapshot.child("profileImageUrl").getValue(String::class.java)
-                    isProfileImageLoaded = true
-                    notifyDataSetChanged()
+                postList.clear()
+                for (postSnapshot in snapshot.children) {
+                    try {
+                        val post = postSnapshot.getValue(Post::class.java)
+                        post?.let {
+                            postList.add(it)
+                        }
+                    } catch (e: DatabaseException) {
+                        Log.e(TAG, "Errore durante la conversione del post", e)
+                    }
                 }
+                notifyDataSetChanged()
             }
+
+
 
             override fun onCancelled(error: DatabaseError) {
                 Log.w(TAG, "Failed to load current user's profile image.", error.toException())
@@ -90,6 +113,7 @@ class PostAdapter(
             .inflate(R.layout.fragment_post_adapter, parent, false)
         return PostViewHolder(itemView)
     }
+
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val currentPost = postList[position]
@@ -155,9 +179,18 @@ class PostAdapter(
 
     // Metodo per eliminare il post dal Realtime Database, da "users/listaPost" e dallo Storage Firebase
     private fun deletePost(context: Context, post: Post) {
+
+
+        // Ottieni l'ID del post corrente
         val postId = post.uid
+
+// Riferimenti ai nodi nel database
         val postsRef = database.getReference("posts").child(postId)
         val userRef = database.getReference("users").child(currentUser.uid).child("listaPost").child(postId)
+        val commentsRef = database.getReference("comments")
+
+// Ottieni il riferimento ai commenti nel nodo del post specifico
+        val commentByRef = postsRef.child("comments")
 
         postsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -203,45 +236,58 @@ class PostAdapter(
 
     // Aggiunge un commento al post nel Realtime Database
     private fun publishComment(context: Context, post: Post, commentText: String) {
-        val postId = post.uid
-        val commentsRef = database.getReference("comments").child(postId).push()
+        // Genera un nuovo uid per il commento
+        val commentUid = database.getReference("comments").push().key ?: ""
 
-        // Creazione dell'oggetto commento con i dati necessari
-        val comment = Comment(
+        // Creazione dell'oggetto Commento con lo stesso uid sia per comments che per posts
+        val commento = Comment(
             imageProfile = currentUserProfileImageUrl ?: "",
-            uid = currentUser.uid,
+            uid = commentUid, // Utilizza lo stesso uid per il commento
             username = currentUser.displayName ?: "",
             text = commentText
         )
 
-        // Salva il commento nella sezione "comments"
-        commentsRef.setValue(comment.toMap())
-            .addOnSuccessListener {
-                Log.d(TAG, "Commento pubblicato con successo")
-            }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Errore durante la pubblicazione del commento", exception)
-                Toast.makeText(context, "Errore durante la pubblicazione del commento", Toast.LENGTH_SHORT).show()
+        // Ottieni il riferimento al nodo "posts" del post corrente
+        val postsRef = database.getReference("posts").child(post.uid)
+
+        // Ottieni il riferimento ai commenti sotto il nodo specifico del post
+        val commentByRef = postsRef.child("comments")
+
+        // Aggiungi il commento alla sezione "comments" sotto il nodo "posts"
+        commentByRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val commentBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<Comment>>() {}) ?: mutableListOf()
+                commentBy.add(commento)
+                commentByRef.setValue(commentBy)
             }
 
-        // Aggiorna la lista dei commenti associati al post nella sezione "posts"
-        val postRef = database.getReference("posts").child(postId)
-        val commentsListRef = postRef.child("comments")
-
-        // Ottieni un nuovo ID per il commento all'interno del post
-        val newCommentId = commentsListRef.push().key ?: ""
-
-        // Aggiungi l'ID del commento alla lista dei commenti nel post
-        commentsListRef.child(newCommentId).setValue(comment)
-            .addOnSuccessListener {
-                Log.d(TAG, "Commento aggiunto alla lista dei commenti del post")
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Listen failed.", error.toException())
             }
-            .addOnFailureListener { exception ->
-                Log.e(TAG, "Errore durante l'aggiunta del commento alla lista dei commenti del post", exception)
+        })
+
+        // Ottieni il riferimento al nodo "users" del proprietario del post
+        val userRef = database.getReference("users").child(post.uidAccount)
+
+        // Ottieni il riferimento ai post dell'utente sotto il nodo "listaPost"
+        val userPostsRef = userRef.child("listaPost").child(post.uid)
+
+        // Ottieni il riferimento ai commenti sotto il nodo specifico del post nell'elenco dell'utente
+        val userPostCommentByRef = userPostsRef.child("comments")
+
+        // Aggiungi il commento alla sezione "comments" sotto il nodo specifico del post nell'elenco dell'utente
+        userPostCommentByRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val commentBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<Comment>>() {}) ?: mutableListOf()
+                commentBy.add(commento)
+                userPostCommentByRef.setValue(commentBy)
             }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Listen failed.", error.toException())
+            }
+        })
     }
-
-
     // Metodo per aggiornare i "mi piace" al post nel Realtime Database
     private fun toggleLike(post: Post) {
         val postsRef = database.getReference("posts").child(post.uid)
@@ -249,10 +295,11 @@ class PostAdapter(
 
         likedByRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val likedBy = snapshot.getValue(MutableList::class.java)?.filterIsInstance<String>()?.toMutableList()
-                    ?: mutableListOf()
+                val likedBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<String>>() {}) ?: mutableListOf()
 
-                if (currentUser.uid != null) {
+
+
+                if (currentUser.uid != null && likedBy!=null) {
                     if (likedBy.contains(currentUser.uid)) {
                         likedBy.remove(currentUser.uid)
                     } else {
@@ -274,7 +321,6 @@ class PostAdapter(
             }
         })
     }
-
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val usernameTextView: TextView = itemView.findViewById(R.id.text_username)
         val descriptionTextView: TextView = itemView.findViewById(R.id.text_post_description)
