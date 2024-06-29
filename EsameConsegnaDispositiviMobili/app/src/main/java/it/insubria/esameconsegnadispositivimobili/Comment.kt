@@ -1,11 +1,14 @@
 package it.insubria.esameconsegnadispositivimobili
 
+import android.widget.ImageView
+
 data class Comment(
+    val imageProfile:String,
     val uid: String,
     val username: String,
     val text: String
 ) {
-    constructor() : this("", "", "")
+    constructor() : this("","", "", "")
 
     fun toMap(): Map<String, Any?> {
         return mapOf(

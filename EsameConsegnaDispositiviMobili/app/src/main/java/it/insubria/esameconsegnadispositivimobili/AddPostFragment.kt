@@ -40,25 +40,19 @@ class AddPostFragment : Fragment() {
     inflater: LayoutInflater, container: ViewGroup?,
     savedInstanceState: Bundle?
   ): View? {
-    // Inflate the layout for this fragment
     val view = inflater.inflate(R.layout.fragment_add_post, container, false)
-
-    // Initialize Firebase Auth
     auth = FirebaseAuth.getInstance()
 
-    // Initialize views
     descriptionEditText = view.findViewById(R.id.descriptionEditText)
     linkEditText = view.findViewById(R.id.linkEditText)
     uploadButton = view.findViewById(R.id.uploadButton)
     selectImageButton = view.findViewById(R.id.selectImageButton)
     imageView = view.findViewById(R.id.imageView)
 
-    // Setup click listener for upload button
     uploadButton.setOnClickListener {
-      uploadPost()
+      validateAndUploadPost()
     }
 
-    // Setup click listener for select image button
     selectImageButton.setOnClickListener {
       selectImage()
     }
@@ -86,31 +80,40 @@ class AddPostFragment : Fragment() {
     }
   }
 
-  private fun uploadPost() {
+  private fun validateAndUploadPost() {
     val currentUser = auth.currentUser
     val uid = currentUser?.uid ?: return
 
     val description = descriptionEditText.text.toString().trim()
     val link = linkEditText.text.toString().trim()
 
+    if (description.length > 500) {
+      Toast.makeText(requireContext(), "La descrizione non può superare i 500 caratteri", Toast.LENGTH_SHORT).show()
+      return
+    }
+
     if (selectedImageUri == null) {
       Toast.makeText(requireContext(), "Seleziona un'immagine prima di pubblicare", Toast.LENGTH_SHORT).show()
       return
     }
 
+    uploadPost(description, link)
+  }
+
+  private fun uploadPost(description: String, link: String) {
+    val currentUser = auth.currentUser
+    val uid = currentUser?.uid ?: return
+
     val database = FirebaseDatabase.getInstance()
     val postsRef = database.getReference("posts")
     val userRef = database.getReference("users").child(uid)
 
-    // Recupera lo username dall'Realtime Database
     userRef.addListenerForSingleValueEvent(object : ValueEventListener {
       override fun onDataChange(snapshot: DataSnapshot) {
         val username = snapshot.child("username").getValue(String::class.java) ?: "Anonymous"
 
-        // Procedi con l'upload del post
         val newPostRef = postsRef.push()
 
-        // Upload dell'immagine
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("images/${newPostRef.key}.jpg")
         val uploadTask = imageRef.putFile(selectedImageUri!!)
@@ -127,7 +130,6 @@ class AddPostFragment : Fragment() {
             val downloadUri = task.result
             val imageUrl = downloadUri.toString()
 
-            // Creazione dell'oggetto Post completo
             val post = Post(
               uid = newPostRef.key ?: "",
               username = username,
@@ -135,18 +137,15 @@ class AddPostFragment : Fragment() {
               imageUrl = imageUrl,
               link = link,
               likedBy = mutableListOf(),
-              comments = mutableListOf()
+              comments = mutableListOf() // Lista vuota, senza commenti iniziali
             )
 
-            // Salvataggio del post nel nodo "posts"
             newPostRef.setValue(post)
               .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()
 
-                // Aggiunta del riferimento del post alla listaPost dell'utente
                 userRef.child("listaPost").child(newPostRef.key ?: "").setValue(post)
 
-                // Navigazione alla HomeFragment o altro fragment desiderato
                 navigateToFragment(HomeFragment())
               }
               .addOnFailureListener { e ->
@@ -163,6 +162,9 @@ class AddPostFragment : Fragment() {
       }
     })
   }
+
+
+
 
   private fun navigateToFragment(fragment: Fragment) {
     val fragmentManager = parentFragmentManager

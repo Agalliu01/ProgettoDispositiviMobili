@@ -7,41 +7,55 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:orientation="vertical">
 
+        <!-- LinearLayout orizzontale per username e descrizione -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- TextView per il nome utente -->
+            <TextView
+                android:id="@+id/text_username"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="Nome Utente" />
+
+            <!-- Icona accanto all'username -->
+            <ImageView
+                android:id="@+id/image_delete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/common_google_signin_btn_icon_dark_focused"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+        </LinearLayout>
+
+        <!-- TextView per la descrizione del post -->
         <TextView
-            android:id="@+id/text_username"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp"/>
-
-        <!-- Icona accanto all'username -->
-        <ImageView
-            android:id="@+id/image_delete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher_background"
+            android:id="@+id/text_post_description"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:text="Descrizione del post"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/text_description"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:layout_marginBottom="8dp"/>
-
+    <!-- ImageView per il post -->
     <ImageView
         android:id="@+id/image_post"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scaleType="centerCrop"
-        android:adjustViewBounds="true"/>
+        android:adjustViewBounds="true"
+        android:src="@drawable/ic_launcher_background" />
 
     <!-- LinearLayout orizzontale per l'icona e il conteggio dei "mi piace" -->
     <LinearLayout
@@ -56,12 +70,66 @@
             android:id="@+id/image_like_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher_background"
+            android:src="@drawable/common_google_signin_btn_icon_dark"
             android:layout_marginEnd="4dp"/>
 
+        <!-- Conteggio "mi piace" -->
         <TextView
             android:id="@+id/text_likes_count"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="" />
+
+        <!-- Spazio vuoto per allineare correttamente la sezione commenti -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
     </LinearLayout>
+
+    <!-- Sezione per i commenti -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="8dp">
+
+        <!-- ImageView per l'immagine del profilo -->
+        <ImageView
+            android:id="@+id/image_profile"
+            android:layout_width="57dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_launcher_background" />
+
+        <!-- EditText per l'inserimento del commento -->
+        <EditText
+            android:id="@+id/edit_comment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Inserisci un commento..."
+            android:padding="8dp"
+            android:layout_marginEnd="8dp" />
+
+        <!-- Icona per pubblicare il commento -->
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="36dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Pubblica il commento"
+            android:onClick="publishComment"
+            android:src="@drawable/ic_launcher_background" />
+    </LinearLayout>
+
+    <!-- RecyclerView per visualizzare i commenti -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_comments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>

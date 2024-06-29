@@ -8,9 +8,10 @@ data class User(
     var password: String,
     val utentiSeguiti: MutableList<String>,
     val follower: MutableList<String>,
-    val listaPost: MutableList<Post> // Lista di oggetti Post anziché booleani
+    val listaPost: MutableList<Post>, // Lista di oggetti Post
+    var profileImageUrl: String = "" // Aggiunto campo per l'URL dell'immagine del profilo
 ) {
-    constructor() : this("", "", "", "", "", mutableListOf(), mutableListOf(), mutableListOf())
+    constructor() : this("", "", "", "", "", mutableListOf(), mutableListOf(), mutableListOf(), "")
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -21,7 +22,8 @@ data class User(
             "password" to password,
             "utentiSeguiti" to utentiSeguiti,
             "follower" to follower,
-            "listaPost" to listaPost.map { it.toMap() }
+            "listaPost" to listaPost.map { it.toMap() },
+            "profileImageUrl" to profileImageUrl // Aggiunto campo per l'URL dell'immagine del profilo
         )
     }
 }

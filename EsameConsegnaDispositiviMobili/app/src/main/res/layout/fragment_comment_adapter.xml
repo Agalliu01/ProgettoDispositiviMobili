@@ -1,0 +1,49 @@
+<!-- item_comment.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <!-- Immagine profilo -->
+    <ImageView
+        android:id="@+id/image_profile"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/googleg_disabled_color_18"
+        android:scaleType="centerCrop"/>
+
+    <!-- Contenitore per username e testo del commento -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp">
+
+        <!-- Username -->
+        <TextView
+            android:id="@+id/text_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="Username" />
+
+        <!-- Testo del commento con supporto per più righe -->
+        <TextView
+            android:id="@+id/text_comment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:text="Testo del commento"
+            android:maxLines="5"
+            android:ellipsize="end"
+            android:scrollbars="vertical"
+            android:scrollbarStyle="insideOverlay"
+            android:textColor="@android:color/black"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:paddingTop="4dp"/>
+
+    </LinearLayout>
+</LinearLayout>
