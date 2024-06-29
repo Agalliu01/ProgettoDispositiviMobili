@@ -12,6 +12,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.fragment.app.FragmentTransaction
 import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
@@ -130,7 +131,8 @@ class AddPostFragment : Fragment() {
           description = description,
           imageUrl = imageUrl,
           link = link,
-          likedBy = mutableListOf()
+          likedBy = mutableListOf(),
+          comments = mutableListOf() // Initialize comments list
         )
 
         // Save the post to posts node
@@ -141,6 +143,7 @@ class AddPostFragment : Fragment() {
 
             // Add post reference to user's listaPost
             userRef.child("listaPost").child(newPostRef.key ?: "").setValue(true)
+            navigateToFragment(HomeFragment())
           }
           .addOnFailureListener { e ->
             // Error saving post
@@ -151,6 +154,15 @@ class AddPostFragment : Fragment() {
         Toast.makeText(requireContext(), "Errore durante il caricamento dell'immagine", Toast.LENGTH_SHORT).show()
       }
     }
+  }
+
+  private fun navigateToFragment(fragment: Fragment) {
+    val fragmentManager = parentFragmentManager
+    val fragmentTransaction = fragmentManager.beginTransaction()
+    fragmentTransaction.replace(R.id.fragmentContainer, fragment)
+    fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+    fragmentTransaction.addToBackStack(null)
+    fragmentTransaction.commit()
   }
 
   companion object {
