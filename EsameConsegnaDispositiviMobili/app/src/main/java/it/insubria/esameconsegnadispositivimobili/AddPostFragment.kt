@@ -144,7 +144,6 @@ class AddPostFragment : Fragment() {
               comments = mutableListOf(), // Lista vuota, senza commenti iniziali
               commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
             )
-
             newPostRef.setValue(post)
               .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()

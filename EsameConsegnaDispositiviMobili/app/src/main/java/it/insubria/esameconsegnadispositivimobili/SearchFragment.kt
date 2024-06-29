@@ -1,4 +1,5 @@
 package it.insubria.esameconsegnadispositivimobili
+
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +12,7 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
@@ -21,11 +23,6 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
     private lateinit var userAdapter: AccountAdapter
     private val userList = mutableListOf<User>()
     private var filteredUserList = listOf<User>()
-
-    private val database = FirebaseDatabase.getInstance()
-
-    private lateinit var currentUser: FirebaseUser
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,9 +37,7 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        currentUser = FirebaseAuth.getInstance().currentUser!!
-
-        // Initialize RecyclerView and Adapter
+        // Inizializza l'adapter con una lista vuota e l'interfaccia per la gestione delle selezioni
         userAdapter = AccountAdapter(requireContext(), filteredUserList, this)
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = userAdapter
@@ -59,31 +54,27 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
     }
 
     private fun loadUsersFromFirebase() {
-        val usersRef = FirebaseDatabase.getInstance().getReference()
-
-        usersRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+        val   database = FirebaseDatabase.getInstance().reference
+        database.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
                 userList.clear()
-                for (snapshot in dataSnapshot.children) {
-                    try {
-                        val userDetails = snapshot.getValue(User::class.java)
-                        // Escludi l'utente corrente
-                        if (userDetails != null && userDetails.uid != currentUser.uid) {
-                            userList.add(userDetails)
-                        }
-                    } catch (e: Exception) {
-                        Log.e("FirebaseDatabase", "Error converting snapshot", e)
+                for (postSnapshot in snapshot.children) {
+                    val user = postSnapshot.getValue(User::class.java)
+                    if (user != null && user.uid != currentUserUid) {
+                        userList.add(user)
                     }
                 }
-                filteredUserList = userList
-                userAdapter.updateUsers(filteredUserList)
-            }
+                userAdapter.notifyDataSetChanged() // Update RecyclerView
+            filteredUserList = userList
+            userAdapter.updateUsers(filteredUserList)
+        }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.e("FirebaseDatabase", "Error getting data", databaseError.toException())
+            override fun onCancelled(error: DatabaseError) {
+                // Gestisci l'errore
+                Log.e("RealtimeDatabase", "Error getting data", error.toException())
             }
         })
-
     }
 
     private fun filterUsers(query: String) {
@@ -95,36 +86,45 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
         userAdapter.updateUsers(filteredUserList)
     }
 
+    // Implementazione del listener per il click sul pulsante di follow nell'adapter
     override fun onItemClick(user: User, followButton: Button) {
-        val userId = currentUser.uid
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val db = Firebase.database.reference
 
-        val usersRef=database.getReference("users")
-        usersRef.child(userId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                val followedUsers = dataSnapshot.child("utentiSeguiti").getValue() as? ArrayList<String>
-                    ?: ArrayList()
+            db.child("users").child(userId).get().addOnSuccessListener { dataSnapshot ->
+                val followedUsers = dataSnapshot.child("followedUsers").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
 
-                if (followedUsers.contains(user.uid)) {
-                    followedUsers.remove(user.uid)
-                    followButton.text = "Segui"
+                if (followedUsers != null) {
+                    val usersList = followedUsers.toMutableList()
+
+                    if (usersList.contains(user.Username)) {
+                        // Utente già seguito, quindi rimuovilo
+                        usersList.remove(user.Username)
+                        followButton.text = "Segui"
+                    } else {
+                        // Utente non seguito, quindi aggiungilo
+                        usersList.add(user.Username)
+                        followButton.text = "Non seguire più"
+                    }
+
+                    // Aggiorna nel database
+                    db.child("users").child(userId).child("followedUsers").setValue(usersList)
+                        .addOnSuccessListener {
+                            // Aggiornamento riuscito
+                        }
+                        .addOnFailureListener { e ->
+                            // Gestione dell'errore nell'aggiornamento
+                            Log.e("RealtimeDatabaseUpdate", "Error updating followedUsers", e)
+                        }
                 } else {
-                    followedUsers.add(user.uid)
-                    followButton.text = "Non seguire più"
+                    // Gestisci il caso in cui followedUsers sia null
+                    Log.e("RealtimeDatabaseUpdate", "followedUsers is null")
                 }
-
-                // Update followedUsers in database
-                usersRef.child(userId).child("utentiSeguiti").setValue(followedUsers)
-                    .addOnSuccessListener {
-                        // Update successful
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("FirebaseDatabase", "Error updating followedUsers", e)
-                    }
+            }.addOnFailureListener { exception ->
+                // Gestione dell'errore nel caricamento dei dati dell'utente corrente
+                Log.e("RealtimeDatabaseUpdate", "Error fetching data", exception)
             }
-
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.e("FirebaseDatabase", "Error fetching document", databaseError.toException())
-            }
-        })
+        }
     }
 }
