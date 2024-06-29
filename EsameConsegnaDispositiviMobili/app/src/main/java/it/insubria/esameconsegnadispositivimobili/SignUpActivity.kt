@@ -122,7 +122,7 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private fun navigateToSignUpUsernameActivity(userDetails: User) {
-        val intent = Intent(this, LoginMainActivityLauncher::class.java)
+        val intent = Intent(this, FirstPageUserActivity::class.java)
         startActivity(intent)
         finish()
     }

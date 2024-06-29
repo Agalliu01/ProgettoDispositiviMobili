@@ -8,10 +8,9 @@ data class User(
     var password: String,
     val utentiSeguiti: MutableList<String>,
     val follower: MutableList<String>,
-    val listaPost: MutableList<Post>
+    val listaPost: MutableList<Post> // Lista di oggetti Post anziché booleani
 ) {
     constructor() : this("", "", "", "", "", mutableListOf(), mutableListOf(), mutableListOf())
-
 
     fun toMap(): Map<String, Any?> {
         return mapOf(
@@ -22,7 +21,7 @@ data class User(
             "password" to password,
             "utentiSeguiti" to utentiSeguiti,
             "follower" to follower,
-            "listaPost" to listaPost.map { it.toMap() } // Converti ogni post in mappa
+            "listaPost" to listaPost.map { it.toMap() }
         )
     }
 }

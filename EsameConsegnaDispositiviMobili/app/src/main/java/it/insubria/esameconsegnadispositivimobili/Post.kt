@@ -24,3 +24,13 @@ val comments: MutableList<Comment> = mutableListOf() // Lista dei commenti relat
         )
     }
 }
+val newPost = Post(
+    uid = "postUid",
+    username = "username",
+    description = "Descrizione del post",
+    imageUrl = "https://example.com/image.jpg",
+    link = "https://example.com",
+    likedBy = mutableListOf(),
+    comments = mutableListOf()
+)
+
