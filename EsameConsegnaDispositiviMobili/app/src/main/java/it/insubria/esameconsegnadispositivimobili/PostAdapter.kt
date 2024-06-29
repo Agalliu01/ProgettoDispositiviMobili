@@ -31,12 +31,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 
 import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
+
+
 
 class PostAdapter(
     private var postList: MutableList<Post>,
     private val isPersonalSection: Boolean
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
-
+    private fun setupCommentsRecyclerView(recyclerView: RecyclerView, post: Post) {
+        val commentsAdapter = CommentAdapter(recyclerView.context, post.comments)
+        recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
+        recyclerView.adapter = commentsAdapter
+    }
 
     private val TAG = "PostAdapter"
 
@@ -45,7 +52,7 @@ class PostAdapter(
     private lateinit var currentUser: FirebaseUser
     private var currentUserProfileImageUrl: String? = null
     private var isProfileImageLoaded = false
-    private lateinit var recyclerView: RecyclerView
+
 
     init {
         currentUser = auth.currentUser!!
@@ -55,7 +62,11 @@ class PostAdapter(
 
 
 
-
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.fragment_post_adapter, parent, false)
+        return PostViewHolder(itemView)
+    }
 
 
 
@@ -65,27 +76,17 @@ class PostAdapter(
 
         userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                postList.clear()
-                for (postSnapshot in snapshot.children) {
-                    try {
-                        val post = postSnapshot.getValue(Post::class.java)
-                        post?.let {
-                            postList.add(it)
-                        }
-                    } catch (e: DatabaseException) {
-                        Log.e(TAG, "Errore durante la conversione del post", e)
-                    }
-                }
+                currentUserProfileImageUrl = snapshot.value as? String
+                isProfileImageLoaded = true
                 notifyDataSetChanged()
             }
-
-
 
             override fun onCancelled(error: DatabaseError) {
                 Log.w(TAG, "Failed to load current user's profile image.", error.toException())
             }
         })
     }
+
 
     private fun listenForPostChanges() {
         val postsRef = database.getReference("posts")
@@ -108,11 +109,7 @@ class PostAdapter(
         })
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.fragment_post_adapter, parent, false)
-        return PostViewHolder(itemView)
-    }
+
 
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
@@ -171,6 +168,9 @@ class PostAdapter(
             // Immagine di placeholder o gestione alternativa
             holder.imageProfileImageView.setImageResource(R.drawable.ic_launcher_background)
         }
+
+        // Carica i commenti relativi al post corrente
+        setupCommentsRecyclerView(holder.recyclerViewComments, currentPost)
     }
 
     override fun getItemCount(): Int {
@@ -321,6 +321,9 @@ class PostAdapter(
             }
         })
     }
+
+
+
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val usernameTextView: TextView = itemView.findViewById(R.id.text_username)
         val descriptionTextView: TextView = itemView.findViewById(R.id.text_post_description)
@@ -331,5 +334,6 @@ class PostAdapter(
         val commentEditText: EditText = itemView.findViewById(R.id.edit_comment)
         val publishCommentIcon: ImageView = itemView.findViewById(R.id.image)
         val imageProfileImageView: ImageView = itemView.findViewById(R.id.image_profile)
+        val recyclerViewComments: RecyclerView = itemView.findViewById(R.id.recycle_comment)
     }
 }

@@ -81,10 +81,13 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun createUserWithUsername(nome: String, cognome: String, email: String, password: String, username: String) {
         auth.createUserWithEmailAndPassword(email, password)
+
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val userDetails = User(nome, cognome, username, email, password,
-                        mutableListOf(), mutableListOf(), mutableListOf()
+                    val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+
+                    val userDetails = User(currentUserUid.toString(),nome, cognome, username, email, password,
+                        mutableListOf(), mutableListOf()
                     )
                     saveUserDetails(userDetails)
                 } else {

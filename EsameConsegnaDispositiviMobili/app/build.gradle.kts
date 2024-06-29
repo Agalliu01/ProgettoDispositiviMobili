@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.cardview:cardview:1.0.0")
 
     implementation ("com.google.firebase:firebase-messaging:23.0.1")
     implementation("com.google.firebase:firebase-appcheck:16.0.0")

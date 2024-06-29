@@ -1,5 +1,6 @@
 package it.insubria.esameconsegnadispositivimobili
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,11 +9,13 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-
-class CommentAdapter(private val commentList: List<Comment>) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
+class CommentAdapter(
+    private val context: Context,
+    private val commentList: List<Comment>
+) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
+        val itemView = LayoutInflater.from(context)
             .inflate(R.layout.fragment_comment_adapter, parent, false)
         return CommentViewHolder(itemView)
     }
@@ -22,7 +25,8 @@ class CommentAdapter(private val commentList: List<Comment>) : RecyclerView.Adap
         holder.usernameTextView.text = currentComment.username
         holder.commentTextView.text = currentComment.text
 
-        Glide.with(holder.profileImageView.context)
+        // Caricamento dell'immagine del profilo
+        Glide.with(context)
             .load(currentComment.imageProfile)
             .into(holder.profileImageView)
     }

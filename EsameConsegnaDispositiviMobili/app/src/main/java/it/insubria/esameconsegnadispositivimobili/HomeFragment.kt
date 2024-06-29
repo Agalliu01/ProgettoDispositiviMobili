@@ -2,24 +2,17 @@ package it.insubria.esameconsegnadispositivimobili
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
 class HomeFragment : Fragment() {
-
-
-
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var postAdapter: PostAdapter
@@ -37,6 +30,10 @@ class HomeFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.recyclerViewHome)
         recyclerView.layoutManager = LinearLayoutManager(context)
+
+        // Initialize RecyclerView Adapter
+        postAdapter = PostAdapter(postList, false) // false because not in "My Posts" section
+        recyclerView.adapter = postAdapter
 
         database = FirebaseDatabase.getInstance().reference
 
@@ -61,8 +58,7 @@ class HomeFragment : Fragment() {
                         postList.add(post)
                     }
                 }
-                postAdapter = PostAdapter(postList, false)
-                recyclerView.adapter = postAdapter
+                postAdapter.notifyDataSetChanged() // Update RecyclerView
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -92,8 +88,7 @@ class HomeFragment : Fragment() {
                                         postList.add(post)
                                     }
                                 }
-                                postAdapter = PostAdapter(postList, false)
-                                recyclerView.adapter = postAdapter
+                                postAdapter.notifyDataSetChanged() // Update RecyclerView
                             }
 
                             override fun onCancelled(error: DatabaseError) {
@@ -121,8 +116,7 @@ class HomeFragment : Fragment() {
                                 postList.add(post)
                             }
                         }
-                        postAdapter = PostAdapter(postList, true) // pass true for isPersonalSection
-                        recyclerView.adapter = postAdapter
+                        postAdapter.notifyDataSetChanged() // Update RecyclerView
                     }
 
                     override fun onCancelled(error: DatabaseError) {
