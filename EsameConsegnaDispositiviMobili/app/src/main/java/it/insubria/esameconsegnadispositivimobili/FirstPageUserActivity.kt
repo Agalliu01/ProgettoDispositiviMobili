@@ -11,6 +11,7 @@ class FirstPageUserActivity : AppCompatActivity() {
     private lateinit var bottomNavigationView: BottomNavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         binding = ActivityFirstPageUserBinding.inflate(layoutInflater)
         setContentView(binding.root)

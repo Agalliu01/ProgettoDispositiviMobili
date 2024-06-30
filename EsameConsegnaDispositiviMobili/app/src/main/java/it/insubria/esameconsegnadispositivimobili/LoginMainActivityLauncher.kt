@@ -14,6 +14,7 @@ class LoginMainActivityLauncher : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme_Dark)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_main_launcher)
 

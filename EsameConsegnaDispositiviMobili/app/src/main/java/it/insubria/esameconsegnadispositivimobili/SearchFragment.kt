@@ -1,6 +1,7 @@
 package it.insubria.esameconsegnadispositivimobili
 
 import android.content.ContentValues.TAG
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -111,6 +112,8 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
                         // Utente già seguito, quindi rimuovilo
                         usersList.remove(user.username)
                         followButton.text = "Segui"
+          //              followButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red_outline)));
+          //              followButton.setTextColor(getResources().getColor(R.color.black_text));
                     } else {
                         // Utente non seguito, quindi aggiungilo
                         usersList.add(user.username)

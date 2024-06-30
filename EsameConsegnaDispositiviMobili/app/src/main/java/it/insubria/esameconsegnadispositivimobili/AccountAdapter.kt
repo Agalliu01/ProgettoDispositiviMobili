@@ -1,6 +1,7 @@
 package it.insubria.esameconsegnadispositivimobili
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -105,10 +106,13 @@ class AccountAdapter(
                         // Utente già seguito, quindi rimuovilo
                         followedUsers.remove(user.username)
                         followButton.text = "Segui"
+                        followButton.setBackgroundColor(Color.GREEN)
                     } else {
                         // Utente non seguito, quindi aggiungilo
                         followedUsers.add(user.username)
                         followButton.text = "Non seguire più"
+                        followButton.setBackgroundColor(Color.RED)
+
                     }
 
                     // Aggiorna nel database

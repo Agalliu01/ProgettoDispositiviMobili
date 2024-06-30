@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <ScrollView
+    <!-- TextView "Settings" in alto -->
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textSize="50sp"
+        android:textColor="#1E88E5"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="16dp" />
+
+    <!-- NestedScrollView per contenuto scorrevole -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/txtTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
-            <TextView
-
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="Settings"
-                android:textColor="#1E88E5"
-                android:textSize="50sp"/>
+            android:padding="16dp">
 
             <!-- ImageView per visualizzare l'immagine del profilo -->
             <ImageView
@@ -29,182 +40,162 @@
                 android:layout_height="300dp"
                 android:src="@drawable/icons8_busto_in_sagoma_48"
                 android:scaleType="centerCrop"
-                android:background="@drawable/ic_launcher_foreground" />
+                android:background="@drawable/ic_launcher_foreground"
+                android:adjustViewBounds="true" />
 
             <!-- Icona per cambiare l'immagine del profilo -->
             <ImageView
                 android:id="@+id/changeImageIcon"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
                 android:src="@drawable/icons8_impostazioni_50"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="8dp"
-                android:contentDescription="Cambia immagine"
-                android:visibility="gone" />
+                android:contentDescription="Cambia immagine" />
 
-            <!-- Layout per le informazioni sul profilo -->
-            <LinearLayout
-                android:id="@+id/profileInfoLayout"
+            <!-- RecyclerView per visualizzare informazioni sul profilo -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="16dp">
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1">
+                android:layout_marginTop="16dp" />
 
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp" />
+            <!-- Sezione per visualizzare il numero di following -->
+            <TextView
+                android:id="@+id/followingTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Seguiti:"
+                android:textColor="#039BE5"
+                android:textSize="25sp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp" />
 
-                </ScrollView>
+            <!-- Campo per il nome -->
+            <TextView
+                android:id="@+id/nomeTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nome"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/nomeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Modifica nome"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
 
+            <!-- Campo per il cognome -->
+            <TextView
+                android:id="@+id/cognomeTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cognome"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/cognomeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Modifica cognome"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
 
-                <!-- Sezione per visualizzare il numero di following -->
-                <TextView
-                    android:id="@+id/followingTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Seguiti:"
-                    android:textColor="#039BE5"
-                    android:textSize="25sp"
-                    android:paddingBottom="16dp" />
+            <!-- Campo per l'username -->
+            <TextView
+                android:id="@+id/usernameTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Username"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/usernameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Modifica username"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
 
-                <!-- Campo per il nome -->
+            <!-- Campo per l'email -->
+            <TextView
+                android:id="@+id/emailTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Email"
+                android:textSize="16sp"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/emailEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Modifica email"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
 
+            <!-- Campo per la password corrente -->
+            <TextView
+                android:id="@+id/password_toggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Password"
+                android:textSize="16sp"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Modifica password"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+            <TextView
+                android:id="@+id/currentPasswordTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#E53935"
+                android:text="**per qualsiasi modifica inserisci password corrente***"
+                android:textSize="15sp"
+                android:paddingBottom="8dp" />
+            <EditText
+                android:id="@+id/currentPasswordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Inserisci password corrente"
+                android:textColorHint="@color/black"
+                android:inputType="textPassword"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+            <Button
+                android:id="@+id/confermaButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Salva modifiche"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
 
-                <TextView
-                    android:id="@+id/nomeTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Nome"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/nomeEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Modifica nome"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
+            <Button
+                android:id="@+id/logoutBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Logout"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#E53935" />
 
-                <!-- Campo per il cognome -->
-                <TextView
-                    android:id="@+id/cognomeTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Cognome"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/cognomeEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Modifica cognome"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-
-                <!-- Campo per l'username -->
-                <TextView
-                    android:id="@+id/usernameTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Username"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/usernameEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Modifica username "
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-
-                <!-- Campo per l'email -->
-                <TextView
-                    android:id="@+id/emailTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Email"
-                    android:textSize="16sp"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/emailEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Modifica email"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-
-                <!-- Campo per la password corrente -->
-
-
-                <TextView
-                    android:id="@+id/password_toggle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Password"
-                    android:textSize="16sp"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/passwordEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Modifica password"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-                <TextView
-                    android:id="@+id/currentPasswordTextView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="#E53935"
-                    android:text="**per qualsiasi modifica inserisci password corrente***"
-                    android:textSize="15sp"
-                    android:paddingBottom="8dp" />
-                <EditText
-                    android:id="@+id/currentPasswordEditText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Inserisci password corrente"
-                    android:textColorHint="@color/black"
-                    android:inputType="textPassword"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-                <Button
-                    android:id="@+id/confermaButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Salva modifiche"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:paddingBottom="8dp" />
-
-                <Button
-                    android:id="@+id/logoutBtn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Logout"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="#E53935" />
-
-            </LinearLayout>
         </LinearLayout>
-    </ScrollView>
-
-</RelativeLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

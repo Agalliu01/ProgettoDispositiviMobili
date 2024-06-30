@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#A8A07343"
+    android:background="#DA000000"
     tools:context=".SignUpActivity">
 
     <ScrollView
@@ -27,7 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Nome"
-                android:textColor="#1E88E5"
+                android:textColor="#A7FFEB"
                 android:textColorHint="#1E88E5"
                 android:padding="16dp"
                 android:layout_marginTop="24dp" />
@@ -64,6 +64,16 @@
                 android:inputType="textPassword"
                 android:padding="16dp" />
             <EditText
+                android:id="@+id/confermaPasswordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Conferma"
+                android:textColor="#1E88E5"
+                android:textColorHint="#1E88E5"
+                android:inputType="textPassword"
+                android:padding="16dp" />
+            <EditText
                 android:id="@+id/usernameEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,7 +90,7 @@
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:text="Registrati"
-                android:textColor="#FFFFFF"
+                android:textColor="#DFDBDB"
                 android:elevation="10dp"
                 android:padding="10dp"
                 android:layout_marginEnd="40dp" /> <!-- Spazio tra Button e TextView -->

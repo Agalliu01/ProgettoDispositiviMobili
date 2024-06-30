@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.OrientationEventListener
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -52,6 +53,23 @@ class SettingsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val orientationEventListener = object : OrientationEventListener(requireContext()) {
+            override fun onOrientationChanged(orientation: Int) {
+                // Aggiorna la rotazione dell'immagine in base all'orientamento dello schermo
+                val rotation = when (orientation) {
+                    in 45..134 -> 180 // Landscape a testa in giù
+                    in 135..224 -> 270 // Landscape invertito
+                    in 225..314 -> 90 // Landscape
+                    else -> 0 // Portrait
+                }
+                profileImageView.rotation = rotation.toFloat()
+            }
+        }
+
+        // Abilita il rilevamento dell'orientamento
+        if (orientationEventListener.canDetectOrientation()) {
+            orientationEventListener.enable()
+        }
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
 
         profileImageView = view.findViewById(R.id.profileImageView)

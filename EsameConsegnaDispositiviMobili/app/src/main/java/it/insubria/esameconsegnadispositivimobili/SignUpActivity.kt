@@ -21,7 +21,9 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.AppTheme) // Applica il tema personalizzato
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_sign_up)
 
         auth = FirebaseAuth.getInstance()
