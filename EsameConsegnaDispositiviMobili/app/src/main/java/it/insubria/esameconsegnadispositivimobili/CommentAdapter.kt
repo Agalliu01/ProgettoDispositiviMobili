@@ -29,7 +29,11 @@ class CommentAdapter(
         // Caricamento dell'immagine del profilo
         Glide.with(context)
             .load(currentComment.imageProfile)
-            .into(holder.profileImageView)
+            .placeholder(R.drawable.icons8_busto_in_sagoma_48) // Immagine placeholder mentre carica
+            .error(R.drawable.icons8_busto_in_sagoma_48) // Immagine di fallback in caso di errore
+            .centerCrop()
+            .into(holder.profileImageView);
+
     }
 
     override fun getItemCount(): Int {

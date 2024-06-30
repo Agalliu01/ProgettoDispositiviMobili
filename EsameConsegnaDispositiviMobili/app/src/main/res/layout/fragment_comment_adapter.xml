@@ -9,7 +9,7 @@
         android:id="@+id/image_profile"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:src="@drawable/googleg_disabled_color_18"
+        android:src="@drawable/icons8_busto_in_sagoma_48"
         android:scaleType="centerCrop"/>
 
     <!-- Contenitore per username e testo del commento -->

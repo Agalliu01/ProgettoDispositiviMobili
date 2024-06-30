@@ -63,12 +63,12 @@ class AccountAdapter(
 
         fun bind(user: User) {
             usernameTextView.text = user.username
-
+            profileImageView.setImageResource(R.drawable.icons8_busto_in_sagoma_48)
             // Carica l'immagine profilo con Glide
             Glide.with(context)
                 .load(user.profileImageUrl) // Assumi che user.imageUrl contenga l'URL dell'immagine profilo
-                .placeholder(R.drawable.ic_launcher_background) // Immagine placeholder mentre carica
-                .error(R.drawable.ic_launcher_background) // Immagine di fallback in caso di errore
+                .placeholder(R.drawable.icons8_busto_in_sagoma_48) // Immagine placeholder mentre carica
+                .error(R.drawable.icons8_busto_in_sagoma_48) // Immagine di fallback in caso di errore
                 .centerCrop()
                 .into(profileImageView)
 
