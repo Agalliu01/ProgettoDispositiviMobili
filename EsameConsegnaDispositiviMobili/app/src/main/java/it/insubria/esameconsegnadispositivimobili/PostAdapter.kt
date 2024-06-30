@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-
 class PostAdapter(
     private var postList: MutableList<Post>,
     private val isPersonalSection: Boolean
@@ -60,10 +59,9 @@ class PostAdapter(
     }
 
     private fun listenForPostChanges() {
-        val uid = currentUser.uid
-        val userPostsRef = database.getReference("users").child(uid).child("listaPost")
+        val postsRef = database.getReference("posts")
 
-        userPostsRef.addValueEventListener(object : ValueEventListener {
+        postsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 postList.clear()
                 for (postSnapshot in snapshot.children) {
@@ -90,7 +88,7 @@ class PostAdapter(
 
         holder.usernameTextView.text = currentPost.username
         holder.descriptionTextView.text = currentPost.description
-        holder.likesCountTextView.text = "Mi piace: ${currentPost.likedBy.size}"
+        holder.likesCountTextView.text = "Mi piace: ${currentPost.likedBy?.size ?: 0}"
 
         // Caricamento dell'immagine del post
         Glide.with(holder.postImageView.context)
@@ -112,7 +110,7 @@ class PostAdapter(
 
         // Verifica se l'utente corrente ha già messo "mi piace" al post corrente
         val currentUserUid = currentUser.uid
-        if (currentUserUid != null && currentPost.likedBy.contains(currentUserUid)) {
+        if (currentUserUid != null && currentPost.likedBy?.contains(currentUserUid) == true) {
             holder.likeIcon.setImageResource(R.drawable.ic_launcher_background)
         } else {
             holder.likeIcon.setImageResource(R.drawable.ic_launcher_background)
@@ -151,10 +149,9 @@ class PostAdapter(
     }
 
     fun deletePost(context: Context, post: Post) {
-        val uid = currentUser.uid
-        val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid)
+        val postsRef = database.getReference("posts").child(post.uid)
 
-        userPostsRef.removeValue().addOnSuccessListener {
+        postsRef.removeValue().addOnSuccessListener {
             // Rimozione dell'immagine dal Firebase Storage
             val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(post.imageUrl)
             storageRef.delete().addOnSuccessListener {
@@ -168,16 +165,20 @@ class PostAdapter(
     }
 
     fun toggleLike(post: Post) {
-        val uid = currentUser.uid
-        val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid).child("likedBy")
+        val postsRef = database.getReference("posts").child(post.uid).child("likedBy")
 
-        if (post.likedBy.contains(uid)) {
-            post.likedBy = post.likedBy.filter { it != uid }.toMutableList()
-        } else {
-            post.likedBy = (post.likedBy + uid).toMutableList()
+        if (post.likedBy == null) {
+            post.likedBy = mutableListOf()
         }
 
-        userPostsRef.setValue(post.likedBy).addOnSuccessListener {
+        val currentUserUid = currentUser.uid
+        if (post.likedBy?.contains(currentUserUid) == true) {
+            post.likedBy?.remove(currentUserUid)
+        } else {
+            post.likedBy?.add(currentUserUid)
+        }
+
+        postsRef.setValue(post.likedBy).addOnSuccessListener {
             notifyDataSetChanged()
         }.addOnFailureListener {
             Log.e(TAG, "Error updating likes for post")
@@ -199,12 +200,12 @@ class PostAdapter(
                 val newComment = Comment(imageProfile, uid, username, commentText)
 
                 // Aggiungi il commento alla lista dei commenti del post
-                val updatedComments = post.comments.toMutableList()
+                val updatedComments = post.comments?.toMutableList() ?: mutableListOf()
                 updatedComments.add(newComment)
 
                 // Aggiorna i commenti nel database
-                val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid).child("comments")
-                userPostsRef.setValue(updatedComments).addOnSuccessListener {
+                val postsRef = database.getReference("posts").child(post.uid).child("comments")
+                postsRef.setValue(updatedComments).addOnSuccessListener {
                     // Aggiornamento riuscito
                     notifyDataSetChanged()
                 }.addOnFailureListener {
@@ -221,9 +222,8 @@ class PostAdapter(
         })
     }
 
-
     private fun setupCommentsRecyclerView(recyclerView: RecyclerView, post: Post) {
-        val commentsAdapter = CommentAdapter(recyclerView.context, post.comments)
+        val commentsAdapter = post.comments?.let { CommentAdapter(recyclerView.context, it) }
         recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
         recyclerView.adapter = commentsAdapter
     }

@@ -91,7 +91,7 @@ class SignUpActivity : AppCompatActivity() {
                     // L'username non è stato trovato, procedi con quello fornito dall'utente
                     username
                 }
-                val userDetails = User(userId, nome, cognome, finalUsername, email, password, mutableListOf(), mutableListOf())
+                val userDetails = User(userId, nome, cognome, finalUsername, email, password, mutableListOf())
                 saveUserDetails(userDetails)
             }
 

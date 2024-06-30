@@ -101,67 +101,57 @@ class AddPostFragment : Fragment() {
   }
 
   private fun uploadPost(description: String, link: String) {
-    val currentUser = auth.currentUser
-    val uid = currentUser?.uid ?: return
+    val currentUser = auth.currentUser ?: return
 
     val database = FirebaseDatabase.getInstance()
-    val userRef = database.getReference("users").child(uid)
+    val postsRef = database.getReference("posts")
 
-    userRef.addListenerForSingleValueEvent(object : ValueEventListener {
-      override fun onDataChange(snapshot: DataSnapshot) {
-        val username = snapshot.child("username").getValue(String::class.java) ?: "Anonymous"
+    val newPostKey = postsRef.push().key ?: ""
+    val commentsUidLista = postsRef.child(newPostKey).child("comments").push().key ?: ""
 
-        val newPostKey = userRef.child("listaPost").push().key ?: ""
+    val storageRef = FirebaseStorage.getInstance().reference
+    val imageRef = storageRef.child("images/$newPostKey.jpg")
+    val uploadTask = imageRef.putFile(selectedImageUri!!)
 
-        // Genera un identificatore univoco per commentsUidLista
-        val commentsUidLista = userRef.child("listaPost").child(newPostKey).child("comments").push().key ?: ""
-
-        val storageRef = FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("images/$newPostKey.jpg")
-        val uploadTask = imageRef.putFile(selectedImageUri!!)
-
-        uploadTask.continueWithTask { task ->
-          if (!task.isSuccessful) {
-            task.exception?.let {
-              throw it
-            }
-          }
-          imageRef.downloadUrl
-        }.addOnCompleteListener { task ->
-          if (task.isSuccessful) {
-            val downloadUri = task.result
-            val imageUrl = downloadUri.toString()
-
-            val post = Post(
-              uid = newPostKey,
-              uidAccount = currentUser.uid,
-              username = username,
-              description = description,
-              imageUrl = imageUrl,
-              link = link,
-              likedBy = mutableListOf(),
-              comments = mutableListOf(), // Lista vuota, senza commenti iniziali
-              commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
-            )
-            userRef.child("listaPost").child(newPostKey).setValue(post)
-              .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()
-                navigateToFragment(HomeFragment())
-              }
-              .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Errore durante il salvataggio del post: ${e.message}", Toast.LENGTH_SHORT).show()
-              }
-          } else {
-            Toast.makeText(requireContext(), "Errore durante il caricamento dell'immagine", Toast.LENGTH_SHORT).show()
-          }
+    uploadTask.continueWithTask { task ->
+      if (!task.isSuccessful) {
+        task.exception?.let {
+          throw it
         }
       }
+      imageRef.downloadUrl
+    }.addOnCompleteListener { task ->
+      if (task.isSuccessful) {
+        val downloadUri = task.result
+        val imageUrl = downloadUri.toString()
 
-      override fun onCancelled(error: DatabaseError) {
-        Toast.makeText(requireContext(), "Errore durante il recupero dei dati utente", Toast.LENGTH_SHORT).show()
+        val post = Post(
+          uid = newPostKey,
+          uidAccount = currentUser.uid,
+          username = currentUser.displayName ?: "Anonymous",
+          description = description,
+          imageUrl = imageUrl,
+          link = link,
+          likedBy = mutableListOf(),
+          comments = mutableListOf(), // Lista vuota, senza commenti iniziali
+          commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
+        )
+
+        // Save the post to "posts/{newPostKey}"
+        postsRef.child(newPostKey).setValue(post)
+          .addOnSuccessListener {
+            Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()
+            navigateToFragment(HomeFragment())
+          }
+          .addOnFailureListener { e ->
+            Toast.makeText(requireContext(), "Errore durante il salvataggio del post: ${e.message}", Toast.LENGTH_SHORT).show()
+          }
+      } else {
+        Toast.makeText(requireContext(), "Errore durante il caricamento dell'immagine", Toast.LENGTH_SHORT).show()
       }
-    })
+    }
   }
+
 
 
 
