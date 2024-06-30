@@ -48,44 +48,23 @@ class SignUpActivity : AppCompatActivity() {
             if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Tutti i campi sono obbligatori", Toast.LENGTH_SHORT).show()
             } else {
-                registerUser(nome, cognome, email, password, username)
+                createUserWithEmailPassword(nome, cognome, email, password, username)
             }
         }
     }
 
-    private fun registerUser(nome: String, cognome: String, email: String, password: String, username: String) {
-        // Verifica se l'username è già stato utilizzato
-        val usersRef = FirebaseDatabase.getInstance().getReference("users")
-        usersRef.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object :
-            ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    // L'username è già in uso, usa "admin" come default
-                    val adminUsername = "admin"
-                    Toast.makeText(this@SignUpActivity, "Username già usato, inserito default automatico '$adminUsername'", Toast.LENGTH_SHORT).show()
-                    createUserWithUsername(nome, cognome, email, password, adminUsername)
-                } else {
-                    // L'username non è stato trovato, procedi con quello fornito dall'utente
-                    createUserWithUsername(nome, cognome, email, password, username)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("SignUpActivity", "Errore durante la verifica dell'username", error.toException())
-                Toast.makeText(this@SignUpActivity, "Errore durante la registrazione: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun createUserWithUsername(nome: String, cognome: String, email: String, password: String, username: String) {
+    private fun createUserWithEmailPassword(nome: String, cognome: String, email: String, password: String, username: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
+                    // Se la registrazione è riuscita, ottieni l'UID dell'utente
                     val userId = auth.currentUser?.uid
-                    val userDetails = User(userId ?: "", nome, cognome, username, email, password,
-                        mutableListOf(), mutableListOf()
-                    )
-                    saveUserDetails(userDetails)
+                    if (userId != null) {
+                        // Verifica l'username
+                        checkUsernameAndSaveUser(userId, nome, cognome, email, password, username)
+                    } else {
+                        Toast.makeText(this, "Errore durante il recupero dell'UID dell'utente", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     val errorMessage = task.exception?.message ?: "Errore durante la registrazione"
                     Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
@@ -96,6 +75,31 @@ class SignUpActivity : AppCompatActivity() {
                     }
                 }
             }
+    }
+
+    private fun checkUsernameAndSaveUser(userId: String, nome: String, cognome: String, email: String, password: String, username: String) {
+        // Verifica se l'username è già stato utilizzato
+        val usersRef = FirebaseDatabase.getInstance().getReference("users")
+        usersRef.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(object :
+            ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val finalUsername = if (snapshot.exists()) {
+                    // L'username è già in uso, usa "admin" come default
+                    Toast.makeText(this@SignUpActivity, "Username già usato, inserito default automatico 'admin'", Toast.LENGTH_SHORT).show()
+                    "admin"
+                } else {
+                    // L'username non è stato trovato, procedi con quello fornito dall'utente
+                    username
+                }
+                val userDetails = User(userId, nome, cognome, finalUsername, email, password, mutableListOf(), mutableListOf())
+                saveUserDetails(userDetails)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("SignUpActivity", "Errore durante la verifica dell'username", error.toException())
+                Toast.makeText(this@SignUpActivity, "Errore durante la registrazione: ${error.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun saveUserDetails(userDetails: User) {

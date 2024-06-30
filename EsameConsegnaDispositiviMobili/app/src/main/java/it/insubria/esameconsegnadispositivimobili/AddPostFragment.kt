@@ -105,20 +105,19 @@ class AddPostFragment : Fragment() {
     val uid = currentUser?.uid ?: return
 
     val database = FirebaseDatabase.getInstance()
-    val postsRef = database.getReference("posts")
     val userRef = database.getReference("users").child(uid)
 
     userRef.addListenerForSingleValueEvent(object : ValueEventListener {
       override fun onDataChange(snapshot: DataSnapshot) {
         val username = snapshot.child("username").getValue(String::class.java) ?: "Anonymous"
 
-        val newPostRef = postsRef.push()
+        val newPostKey = userRef.child("listaPost").push().key ?: ""
 
         // Genera un identificatore univoco per commentsUidLista
-        val commentsUidLista = newPostRef.child("comments").push().key ?: ""
+        val commentsUidLista = userRef.child("listaPost").child(newPostKey).child("comments").push().key ?: ""
 
         val storageRef = FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("images/${newPostRef.key}.jpg")
+        val imageRef = storageRef.child("images/$newPostKey.jpg")
         val uploadTask = imageRef.putFile(selectedImageUri!!)
 
         uploadTask.continueWithTask { task ->
@@ -134,7 +133,7 @@ class AddPostFragment : Fragment() {
             val imageUrl = downloadUri.toString()
 
             val post = Post(
-              uid = newPostRef.key ?: "",
+              uid = newPostKey,
               uidAccount = currentUser.uid,
               username = username,
               description = description,
@@ -144,12 +143,9 @@ class AddPostFragment : Fragment() {
               comments = mutableListOf(), // Lista vuota, senza commenti iniziali
               commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
             )
-            newPostRef.setValue(post)
+            userRef.child("listaPost").child(newPostKey).setValue(post)
               .addOnSuccessListener {
                 Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()
-
-                userRef.child("listaPost").child(newPostRef.key ?: "").setValue(post)
-
                 navigateToFragment(HomeFragment())
               }
               .addOnFailureListener { e ->
@@ -166,6 +162,7 @@ class AddPostFragment : Fragment() {
       }
     })
   }
+
 
 
 

@@ -59,7 +59,6 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
         val currentUser = auth.currentUser
         val database = FirebaseDatabase.getInstance()
 
-        // Check if currentUser is not null before using it
         currentUser?.let { user ->
             val uid = user.uid
             val userRef = database.getReference("users")
@@ -67,10 +66,14 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
             userRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     userList.clear()
-                    for (postSnapshot in snapshot.children) {
-                        val user = postSnapshot.getValue(User::class.java)
-                        if (user != null && user.uid != user.uid) {
-                            userList.add(user)
+                    for (userSnapshot in snapshot.children) {
+                        try {
+                            val user = userSnapshot.getValue(User::class.java)
+                            if (user != null) {
+                                userList.add(user)
+                            }
+                        } catch (e: DatabaseException) {
+                            Log.e(TAG, "Error deserializing user: ${e.message}", e)
                         }
                     }
                     filteredUserList = userList
@@ -78,13 +81,14 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.w(TAG, "Failed to load current user's profile image.", error.toException())
+                    Log.w(TAG, "Failed to load users.", error.toException())
                 }
             })
         } ?: run {
             Log.e(TAG, "Current user is null")
         }
     }
+
 
     private fun filterUsers(query: String) {
         filteredUserList = if (query.isEmpty()) {

@@ -1,7 +1,6 @@
 package it.insubria.esameconsegnadispositivimobili
 
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,37 +12,15 @@ import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.auth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseException
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.GenericTypeIndicator
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.childEvents
-import com.google.firebase.firestore.DocumentChange
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-
-import kotlinx.coroutines.launch
-import kotlin.coroutines.coroutineContext
-
-
 
 class PostAdapter(
     private var postList: MutableList<Post>,
     private val isPersonalSection: Boolean
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
-    private fun setupCommentsRecyclerView(recyclerView: RecyclerView, post: Post) {
-        val commentsAdapter = CommentAdapter(recyclerView.context, post.comments)
-        recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
-        recyclerView.adapter = commentsAdapter
-    }
 
     private val TAG = "PostAdapter"
 
@@ -53,22 +30,17 @@ class PostAdapter(
     private var currentUserProfileImageUrl: String? = null
     private var isProfileImageLoaded = false
 
-
     init {
         currentUser = auth.currentUser!!
         loadCurrentUserProfileImage()
         listenForPostChanges()
     }
 
-
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.fragment_post_adapter, parent, false)
         return PostViewHolder(itemView)
     }
-
-
 
     private fun loadCurrentUserProfileImage() {
         val uid = currentUser.uid
@@ -87,17 +59,21 @@ class PostAdapter(
         })
     }
 
-
     private fun listenForPostChanges() {
-        val postsRef = database.getReference("posts")
+        val uid = currentUser.uid
+        val userPostsRef = database.getReference("users").child(uid).child("listaPost")
 
-        postsRef.addValueEventListener(object : ValueEventListener {
+        userPostsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 postList.clear()
                 for (postSnapshot in snapshot.children) {
-                    val post = postSnapshot.getValue(Post::class.java)
-                    post?.let {
-                        postList.add(it)
+                    try {
+                        val post = postSnapshot.getValue(Post::class.java)
+                        post?.let {
+                            postList.add(it)
+                        }
+                    } catch (e: DatabaseException) {
+                        Log.e(TAG, "Error deserializing post: ${e.message}", e)
                     }
                 }
                 notifyDataSetChanged()
@@ -108,9 +84,6 @@ class PostAdapter(
             }
         })
     }
-
-
-
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val currentPost = postList[position]
@@ -169,7 +142,7 @@ class PostAdapter(
             holder.imageProfileImageView.setImageResource(R.drawable.ic_launcher_background)
         }
 
-        // Carica i commenti relativi al post corrente
+        // Configurazione del RecyclerView dei commenti
         setupCommentsRecyclerView(holder.recyclerViewComments, currentPost)
     }
 
@@ -177,152 +150,83 @@ class PostAdapter(
         return postList.size
     }
 
-    // Metodo per eliminare il post dal Realtime Database, da "users/listaPost" e dallo Storage Firebase
-    private fun deletePost(context: Context, post: Post) {
+    fun deletePost(context: Context, post: Post) {
+        val uid = currentUser.uid
+        val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid)
 
-
-        // Ottieni l'ID del post corrente
-        val postId = post.uid
-
-// Riferimenti ai nodi nel database
-        val postsRef = database.getReference("posts").child(postId)
-        val userRef = database.getReference("users").child(currentUser.uid).child("listaPost").child(postId)
-        val commentsRef = database.getReference("comments")
-
-// Ottieni il riferimento ai commenti nel nodo del post specifico
-        val commentByRef = postsRef.child("comments")
-
-        postsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val imageUrl = snapshot.child("imageUrl").getValue(String::class.java)
-
-                // Elimina l'immagine dallo Storage Firebase (se necessario)
-                imageUrl?.let {
-                    val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(it)
-                    storageRef.delete()
-                        .addOnSuccessListener {
-                            Log.d(TAG, "Immagine eliminata dallo Storage Firebase")
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e(TAG, "Errore durante l'eliminazione dell'immagine dallo Storage Firebase", exception)
-                        }
-                }
-
-                // Elimina il post da "posts"
-                postsRef.removeValue()
-
-                // Elimina il post da "users/listaPost"
-                userRef.removeValue()
-                    .addOnSuccessListener {
-                        Log.d(TAG, "Post rimosso da users/listaPost con successo")
-                    }
-                    .addOnFailureListener { exception ->
-                        Log.e(TAG, "Errore durante la rimozione del post da users/listaPost", exception)
-                    }
-
-                // Rimuovi il post dalla lista locale
-                postList.remove(post)
-                notifyDataSetChanged()
-
+        userPostsRef.removeValue().addOnSuccessListener {
+            // Rimozione dell'immagine dal Firebase Storage
+            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(post.imageUrl)
+            storageRef.delete().addOnSuccessListener {
                 Toast.makeText(context, "Post eliminato con successo", Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(context, "Errore nell'eliminazione dell'immagine", Toast.LENGTH_SHORT).show()
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Delete operation cancelled.", error.toException())
-                Toast.makeText(context, "Errore durante l'eliminazione del post", Toast.LENGTH_SHORT).show()
-            }
-        })
+        }.addOnFailureListener {
+            Toast.makeText(context, "Errore nell'eliminazione del post", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    // Aggiunge un commento al post nel Realtime Database
-    private fun publishComment(context: Context, post: Post, commentText: String) {
-        // Genera un nuovo uid per il commento
-        val commentUid = database.getReference("comments").push().key ?: ""
+    fun toggleLike(post: Post) {
+        val uid = currentUser.uid
+        val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid).child("likedBy")
 
-        // Creazione dell'oggetto Commento con lo stesso uid sia per comments che per posts
-        val commento = Comment(
-            imageProfile = currentUserProfileImageUrl ?: "",
-            uid = commentUid, // Utilizza lo stesso uid per il commento
-            username = currentUser.displayName ?: "",
-            text = commentText
-        )
+        if (post.likedBy.contains(uid)) {
+            post.likedBy = post.likedBy.filter { it != uid }.toMutableList()
+        } else {
+            post.likedBy = (post.likedBy + uid).toMutableList()
+        }
 
-        // Ottieni il riferimento al nodo "posts" del post corrente
-        val postsRef = database.getReference("posts").child(post.uid)
-
-        // Ottieni il riferimento ai commenti sotto il nodo specifico del post
-        val commentByRef = postsRef.child("comments")
-
-        // Aggiungi il commento alla sezione "comments" sotto il nodo "posts"
-        commentByRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val commentBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<Comment>>() {}) ?: mutableListOf()
-                commentBy.add(commento)
-                commentByRef.setValue(commentBy)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Listen failed.", error.toException())
-            }
-        })
-
-        // Ottieni il riferimento al nodo "users" del proprietario del post
-        val userRef = database.getReference("users").child(post.uidAccount)
-
-        // Ottieni il riferimento ai post dell'utente sotto il nodo "listaPost"
-        val userPostsRef = userRef.child("listaPost").child(post.uid)
-
-        // Ottieni il riferimento ai commenti sotto il nodo specifico del post nell'elenco dell'utente
-        val userPostCommentByRef = userPostsRef.child("comments")
-
-        // Aggiungi il commento alla sezione "comments" sotto il nodo specifico del post nell'elenco dell'utente
-        userPostCommentByRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val commentBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<Comment>>() {}) ?: mutableListOf()
-                commentBy.add(commento)
-                userPostCommentByRef.setValue(commentBy)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Listen failed.", error.toException())
-            }
-        })
+        userPostsRef.setValue(post.likedBy).addOnSuccessListener {
+            notifyDataSetChanged()
+        }.addOnFailureListener {
+            Log.e(TAG, "Error updating likes for post")
+        }
     }
-    // Metodo per aggiornare i "mi piace" al post nel Realtime Database
-    private fun toggleLike(post: Post) {
-        val postsRef = database.getReference("posts").child(post.uid)
-        val likedByRef = postsRef.child("likedBy")
 
-        likedByRef.addListenerForSingleValueEvent(object : ValueEventListener {
+    fun publishComment(context: Context, post: Post, commentText: String) {
+        val uid = currentUser.uid
+        var username = currentUser.displayName ?: ""
+
+        // Ottieni il username dall'utente nel database
+        val userRef = database.getReference("users").child(uid).child("username")
+        userRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val likedBy = snapshot.getValue(object : GenericTypeIndicator<MutableList<String>>() {}) ?: mutableListOf()
+                username = snapshot.value as? String ?: ""
 
+                val imageProfile = currentUserProfileImageUrl ?: ""
 
+                val newComment = Comment(imageProfile, uid, username, commentText)
 
-                if (currentUser.uid != null && likedBy!=null) {
-                    if (likedBy.contains(currentUser.uid)) {
-                        likedBy.remove(currentUser.uid)
-                    } else {
-                        likedBy.add(currentUser.uid)
-                    }
+                // Aggiungi il commento alla lista dei commenti del post
+                val updatedComments = post.comments.toMutableList()
+                updatedComments.add(newComment)
 
-                    likedByRef.setValue(likedBy)
-                        .addOnSuccessListener {
-                            Log.d(TAG, "Mi piace aggiornato con successo")
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e(TAG, "Errore durante l'aggiornamento dei mi piace", exception)
-                        }
+                // Aggiorna i commenti nel database
+                val userPostsRef = database.getReference("users").child(uid).child("listaPost").child(post.uid).child("comments")
+                userPostsRef.setValue(updatedComments).addOnSuccessListener {
+                    // Aggiornamento riuscito
+                    notifyDataSetChanged()
+                }.addOnFailureListener {
+                    // Gestione dell'errore nell'aggiornamento
+                    Log.e(TAG, "Error updating comments for post")
+                    Toast.makeText(context, "Errore nell'aggiunta del commento", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "Listen failed.", error.toException())
+                Log.w(TAG, "Failed to load username.", error.toException())
+                Toast.makeText(context, "Errore nel caricamento del nome utente", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
 
+    private fun setupCommentsRecyclerView(recyclerView: RecyclerView, post: Post) {
+        val commentsAdapter = CommentAdapter(recyclerView.context, post.comments)
+        recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
+        recyclerView.adapter = commentsAdapter
+    }
 
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val usernameTextView: TextView = itemView.findViewById(R.id.text_username)

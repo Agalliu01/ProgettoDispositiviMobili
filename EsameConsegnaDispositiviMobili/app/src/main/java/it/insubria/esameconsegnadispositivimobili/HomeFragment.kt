@@ -41,9 +41,6 @@ class HomeFragment : Fragment() {
         val buttonViewFollowedPosts: Button = view.findViewById(R.id.btn_seguiti)
         val buttonViewPersonalPosts: Button = view.findViewById(R.id.btn_personali)
 
-        database = FirebaseDatabase.getInstance().reference
-
-
         buttonViewAllPosts.setOnClickListener { loadAllPosts() }
         buttonViewFollowedPosts.setOnClickListener { loadFollowedPosts() }
         buttonViewPersonalPosts.setOnClickListener { loadPersonalPosts() }
@@ -52,17 +49,24 @@ class HomeFragment : Fragment() {
     }
 
     private fun loadAllPosts() {
-        database.child("posts").addListenerForSingleValueEvent(object : ValueEventListener {
+        database.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 postList.clear()
-                for (postSnapshot in snapshot.children) {
-                    val post = postSnapshot.getValue(Post::class.java)
-                    if (post != null) {
-                        postList.add(post)
+                for (userSnapshot in snapshot.children) {
+                    val userPostsSnapshot = userSnapshot.child("listaPost")
+                    for (postSnapshot in userPostsSnapshot.children) {
+                        try {
+                            val post = postSnapshot.getValue(Post::class.java)
+                            post?.let {
+                                postList.add(it)
+                            }
+                        } catch (e: DatabaseException) {
+                            Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
+                        }
                     }
                 }
-                postAdapter = PostAdapter(postList, false)
-                recyclerView.adapter = postAdapter
+                updatePostAdapter(postList,false)
+                postAdapter.notifyDataSetChanged()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -83,17 +87,26 @@ class HomeFragment : Fragment() {
                                 followedUserIds.add(userId)
                             }
                         }
-                        database.child("posts").addListenerForSingleValueEvent(object : ValueEventListener {
+                        database.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 postList.clear()
-                                for (postSnapshot in snapshot.children) {
-                                    val post = postSnapshot.getValue(Post::class.java)
-                                    if (post != null && followedUserIds.contains(post.uid)) {
-                                        postList.add(post)
+                                for (userSnapshot in snapshot.children) {
+                                    if (followedUserIds.contains(userSnapshot.key)) {
+                                        val userPostsSnapshot = userSnapshot.child("listaPost")
+                                        for (postSnapshot in userPostsSnapshot.children) {
+                                            try {
+                                                val post = postSnapshot.getValue(Post::class.java)
+                                                post?.let {
+                                                    postList.add(it)
+                                                }
+                                            } catch (e: DatabaseException) {
+                                                Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
+                                            }
+                                        }
                                     }
                                 }
-                                postAdapter = PostAdapter(postList, false)
-                                recyclerView.adapter = postAdapter
+                                postAdapter.notifyDataSetChanged()
+                                updatePostAdapter(postList,false)
                             }
 
                             override fun onCancelled(error: DatabaseError) {
@@ -114,15 +127,18 @@ class HomeFragment : Fragment() {
             database.child("users").child(uid).child("listaPost")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        postList.clear()
+                        val personalPostList = mutableListOf<Post>()
                         for (postSnapshot in snapshot.children) {
-                            val post = postSnapshot.getValue(Post::class.java)
-                            if (post != null) {
-                                postList.add(post)
+                            try {
+                                val post = postSnapshot.getValue(Post::class.java)
+                                post?.let {
+                                    personalPostList.add(it)
+                                }
+                            } catch (e: DatabaseException) {
+                                Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
                             }
                         }
-                        postAdapter = PostAdapter(postList, true) // pass true for isPersonalSection
-                        recyclerView.adapter = postAdapter
+                        updatePostAdapter(personalPostList, true) // Pass true for isPersonalSection
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -131,4 +147,12 @@ class HomeFragment : Fragment() {
                 })
         }
     }
+
+    private fun updatePostAdapter(posts: List<Post>, isPersonalSection: Boolean) {
+        // Crea un nuovo adapter con la lista aggiornata e il flag isPersonalSection
+        postAdapter = PostAdapter(posts.toMutableList(), isPersonalSection)
+        recyclerView.adapter = postAdapter
+        postAdapter.notifyDataSetChanged()
+    }
+
 }
