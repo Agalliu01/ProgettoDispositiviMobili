@@ -24,6 +24,7 @@ class CommentAdapter(
         val currentComment = commentList[position]
         holder.usernameTextView.text = currentComment.username
         holder.commentTextView.text = currentComment.text
+        holder.profileImageView.setImageResource(R.drawable.icons8_busto_in_sagoma_48);
 
         // Caricamento dell'immagine del profilo
         Glide.with(context)

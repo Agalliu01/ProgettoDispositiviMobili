@@ -26,6 +26,27 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:text="Nome Utente" />
+            <TextView
+                android:id="@+id/text_link_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Link fonte:"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:paddingStart="8dp"
+                android:paddingEnd="4dp" />
+            <TextView
+                android:id="@+id/text_link"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="visita il sito"
+                android:textColor="@android:color/holo_blue_dark"
+
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+
 
             <!-- Icona accanto all'username -->
             <ImageView
@@ -71,7 +92,7 @@
             android:id="@+id/image_like_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/common_google_signin_btn_icon_dark"
+            android:src="@drawable/icons8_cuore_rosso_48"
             android:layout_marginEnd="4dp"/>
 
         <!-- Conteggio "mi piace" -->
@@ -97,14 +118,15 @@
         android:paddingTop="8dp">
 
         <!-- ImageView per l'immagine del profilo -->
-        <ImageView
-            android:id="@+id/image_profile"
-            android:layout_width="57dp"
-            android:layout_height="52dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_launcher_background" />
 
         <!-- EditText per l'inserimento del commento -->
+        <ImageView
+            android:id="@+id/image_profile"
+            android:layout_width="38dp"
+            android:layout_height="27dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/icons8_busto_in_sagoma_48" />
+
         <EditText
             android:id="@+id/edit_comment"
             android:layout_width="0dp"
@@ -123,8 +145,15 @@
             android:layout_marginEnd="8dp"
             android:contentDescription="Pubblica il commento"
             android:onClick="publishComment"
-            android:src="@drawable/ic_launcher_background" />
+            android:src="@drawable/message_icon_218061" />
     </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="20dp"
+        android:text="Commenti: " />
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -102,9 +102,22 @@ class AddPostFragment : Fragment() {
 
   private fun uploadPost(description: String, link: String) {
     val currentUser = auth.currentUser ?: return
-
+    var username="admin"
     val database = FirebaseDatabase.getInstance()
     val postsRef = database.getReference("posts")
+    val usernameRef=database.getReference("users").child(currentUser.uid).child("username")
+    usernameRef.addListenerForSingleValueEvent(object : ValueEventListener {
+      override fun onDataChange(dataSnapshot: DataSnapshot) {
+        // Qui ottieni l'username dal dataSnapshot
+           username = dataSnapshot.value as String
+
+      }
+
+      override fun onCancelled(databaseError: DatabaseError) {
+        // Gestione degli errori, se necessario
+        println("Errore nel recupero dell'username: ${databaseError.message}")
+      }
+    })
 
     val newPostKey = postsRef.push().key ?: ""
     val commentsUidLista = postsRef.child(newPostKey).child("comments").push().key ?: ""
@@ -128,10 +141,10 @@ class AddPostFragment : Fragment() {
         val post = Post(
           uid = newPostKey,
           uidAccount = currentUser.uid,
-          username = currentUser.displayName ?: "Anonymous",
+          username = username,
           description = description,
           imageUrl = imageUrl,
-          link = link,
+          link = linkEditText.toString(),
           likedBy = mutableListOf(),
           comments = mutableListOf(), // Lista vuota, senza commenti iniziali
           commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti

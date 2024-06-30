@@ -1,6 +1,8 @@
 package it.insubria.esameconsegnadispositivimobili
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +11,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -83,11 +86,15 @@ class PostAdapter(
         })
     }
 
+
+
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val currentPost = postList[position]
+        holder.usernameTextView.text ="Post di: "+currentPost.username
 
-        holder.usernameTextView.text = currentPost.username
-        holder.descriptionTextView.text = currentPost.description
+
+
+        holder.descriptionTextView.text = "Descrizione Post:\n"+currentPost.description
         holder.likesCountTextView.text = "Mi piace: ${currentPost.likedBy?.size ?: 0}"
 
         // Caricamento dell'immagine del post
@@ -107,14 +114,13 @@ class PostAdapter(
         holder.likeIcon.setOnClickListener {
             toggleLike(currentPost)
         }
-
-        // Verifica se l'utente corrente ha già messo "mi piace" al post corrente
-        val currentUserUid = currentUser.uid
-        if (currentUserUid != null && currentPost.likedBy?.contains(currentUserUid) == true) {
-            holder.likeIcon.setImageResource(R.drawable.ic_launcher_background)
-        } else {
-            holder.likeIcon.setImageResource(R.drawable.ic_launcher_background)
+        holder.link.setOnClickListener {
+            openWebsite(holder.itemView.context, currentPost)
         }
+
+
+        holder.imageProfileImageView.setImageResource(R.drawable.icons8_busto_in_sagoma_48);
+
 
         // Gestione del click sull'icona per pubblicare il commento
         holder.publishCommentIcon.setOnClickListener {
@@ -128,6 +134,7 @@ class PostAdapter(
             }
         }
 
+
         // Caricamento dell'immagine del profilo dell'utente corrente se disponibile
         if (isProfileImageLoaded) {
             currentUserProfileImageUrl?.let {
@@ -135,9 +142,6 @@ class PostAdapter(
                     .load(it)
                     .into(holder.imageProfileImageView)
             }
-        } else {
-            // Immagine di placeholder o gestione alternativa
-            holder.imageProfileImageView.setImageResource(R.drawable.ic_launcher_background)
         }
 
         // Configurazione del RecyclerView dei commenti
@@ -227,6 +231,23 @@ class PostAdapter(
         recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
         recyclerView.adapter = commentsAdapter
     }
+    private fun openWebsite(context: Context, post: Post) {
+        val url = post.link
+
+        if (url.isNotEmpty()) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            if (intent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(intent)
+            } else {
+                Toast.makeText(context, "Nessuna app disponibile per aprire il link", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "URL non valido", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+
 
     inner class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val usernameTextView: TextView = itemView.findViewById(R.id.text_username)
@@ -239,5 +260,7 @@ class PostAdapter(
         val publishCommentIcon: ImageView = itemView.findViewById(R.id.image)
         val imageProfileImageView: ImageView = itemView.findViewById(R.id.image_profile)
         val recyclerViewComments: RecyclerView = itemView.findViewById(R.id.recycle_comment)
+        val link:TextView=itemView.findViewById(R.id.text_link)
     }
+
 }
