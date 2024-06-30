@@ -5,13 +5,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
-import java.lang.Exception
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 class HomeFragment : Fragment() {
 
@@ -38,13 +40,8 @@ class HomeFragment : Fragment() {
 
         database = FirebaseDatabase.getInstance().reference
 
-        val buttonViewAllPosts: Button = view.findViewById(R.id.btn_tutti)
-        val buttonViewFollowedPosts: Button = view.findViewById(R.id.btn_seguiti)
-        val buttonViewPersonalPosts: Button = view.findViewById(R.id.btn_personali)
-
-        buttonViewAllPosts.setOnClickListener { loadAllPosts() }
-        buttonViewFollowedPosts.setOnClickListener { loadFollowedPosts() }
-        buttonViewPersonalPosts.setOnClickListener { loadPersonalPosts() }
+        // Load all posts immediately when fragment is created
+        loadAllPosts()
 
         return view
     }
@@ -63,7 +60,7 @@ class HomeFragment : Fragment() {
                         Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
                     }
                 }
-                updatePostAdapter(postList, false)
+                updatePostAdapter(postList, true) // true because loading all posts
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -72,77 +69,10 @@ class HomeFragment : Fragment() {
         })
     }
 
-    private fun loadFollowedPosts() {
-        currentUserUid?.let { uid ->
-            database.child("users").child(uid).child("utentiSeguiti")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        followedUserIds.clear()
-                        for (userSnapshot in snapshot.children) {
-                            val userId = userSnapshot.key
-                            if (userId != null) {
-                                followedUserIds.add(userId)
-                            }
-                        }
-                        database.child("posts").addListenerForSingleValueEvent(object : ValueEventListener {
-                            override fun onDataChange(snapshot: DataSnapshot) {
-                                postList.clear()
-                                for (postSnapshot in snapshot.children) {
-                                    try {
-                                        val post = postSnapshot.getValue(Post::class.java)
-                                        if (post != null && followedUserIds.contains(post.uidAccount)) {
-                                            postList.add(post)
-                                        }
-                                    } catch (e: DatabaseException) {
-                                        Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
-                                    }
-                                }
-                                updatePostAdapter(postList, false)
-                            }
-
-                            override fun onCancelled(error: DatabaseError) {
-                                Log.e("HomeFragment", "Error loading followed posts", error.toException())
-                            }
-                        })
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Log.e("HomeFragment", "Error loading followed users", error.toException())
-                    }
-                })
-        }
-    }
-
-    private fun loadPersonalPosts() {
-        currentUserUid?.let { uid ->
-            database.child("posts").addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val personalPostList = mutableListOf<Post>()
-                    for (postSnapshot in snapshot.children) {
-                        try {
-                            val post = postSnapshot.getValue(Post::class.java)
-                            if (post != null && post.uidAccount == uid) {
-                                personalPostList.add(post)
-                            }
-                        } catch (e: DatabaseException) {
-                            Log.e("HomeFragment", "Error deserializing post: ${e.message}", e)
-                        }
-                    }
-                    updatePostAdapter(personalPostList, true) // Pass true for isPersonalSection
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("HomeFragment", "Error loading personal posts", error.toException())
-                }
-            })
-        }
-    }
-
     private fun updatePostAdapter(posts: List<Post>, isPersonalSection: Boolean) {
-        // Crea un nuovo adapter con la lista aggiornata e il flag isPersonalSection
+        // Create a new adapter with the updated list and the isPersonalSection flag
         postAdapter = PostAdapter(posts.toMutableList(), isPersonalSection)
         recyclerView.adapter = postAdapter
         postAdapter.notifyDataSetChanged()
     }
-
 }

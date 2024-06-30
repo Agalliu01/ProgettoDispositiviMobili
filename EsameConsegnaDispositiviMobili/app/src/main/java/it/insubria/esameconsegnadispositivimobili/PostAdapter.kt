@@ -153,20 +153,27 @@ class PostAdapter(
     }
 
     fun deletePost(context: Context, post: Post) {
-        val postsRef = database.getReference("posts").child(post.uid)
-
-        postsRef.removeValue().addOnSuccessListener {
-            // Rimozione dell'immagine dal Firebase Storage
-            val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(post.imageUrl)
-            storageRef.delete().addOnSuccessListener {
-                Toast.makeText(context, "Post eliminato con successo", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                Toast.makeText(context, "Errore nell'eliminazione dell'immagine", Toast.LENGTH_SHORT).show()
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        currentUser?.let { user ->
+            if (post.uidAccount == user.uid) {
+                val postsRef = FirebaseDatabase.getInstance().getReference("posts").child(post.uid)
+                postsRef.removeValue().addOnSuccessListener {
+                    // Rimozione dell'immagine dal Firebase Storage
+                    val storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(post.imageUrl)
+                    storageRef.delete().addOnSuccessListener {
+                        Toast.makeText(context, "Post eliminato con successo", Toast.LENGTH_SHORT).show()
+                    }.addOnFailureListener {
+                        Toast.makeText(context, "Errore nell'eliminazione dell'immagine", Toast.LENGTH_SHORT).show()
+                    }
+                }.addOnFailureListener {
+                    Toast.makeText(context, "Errore nell'eliminazione del post", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "Non hai i permessi per eliminare questo post", Toast.LENGTH_SHORT).show()
             }
-        }.addOnFailureListener {
-            Toast.makeText(context, "Errore nell'eliminazione del post", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     fun toggleLike(post: Post) {
         val postsRef = database.getReference("posts").child(post.uid).child("likedBy")

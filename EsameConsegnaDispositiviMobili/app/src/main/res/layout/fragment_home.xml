@@ -22,20 +22,7 @@
             android:text="Tutti"/>
 
         <!-- Secondo pulsante -->
-        <Button
-            android:id="@+id/btn_seguiti"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Seguiti"/>
 
-        <!-- Terzo pulsante -->
-        <Button
-            android:id="@+id/btn_personali"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Personali"/>
     </LinearLayout>
 
     <!-- ScrollView contenente la RecyclerView per i post -->
