@@ -62,7 +62,7 @@ class AccountAdapter(
         }
 
         fun bind(user: User) {
-            usernameTextView.text = user.Username
+            usernameTextView.text = user.username
 
             // Carica l'immagine profilo con Glide
             Glide.with(context)
@@ -74,11 +74,11 @@ class AccountAdapter(
 
             // Verifica se l'utente è seguito o meno
             if (currentUserUid != null) {
-                db.child("users").child(currentUserUid).child("followedUsers")
+                db.child("users").child(currentUserUid).child("utentiSeguiti")
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
                             val followedUsers = dataSnapshot.getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
-                            if (followedUsers != null && followedUsers.contains(user.Username)) {
+                            if (followedUsers != null && followedUsers.contains(user.username)) {
                                 followButton.text = "Non seguire più"
                             } else {
                                 followButton.text = "Segui"
@@ -97,22 +97,22 @@ class AccountAdapter(
     private fun toggleFollow(user: User, followButton: Button) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {
-            db.child("users").child(userId).child("followedUsers").get()
+            db.child("users").child(userId).child("utentiSeguiti").get()
                 .addOnSuccessListener { dataSnapshot ->
                     val followedUsers = dataSnapshot.getValue(object : GenericTypeIndicator<ArrayList<String>>() {}) ?: arrayListOf()
 
-                    if (followedUsers.contains(user.Username)) {
+                    if (followedUsers.contains(user.username)) {
                         // Utente già seguito, quindi rimuovilo
-                        followedUsers.remove(user.Username)
+                        followedUsers.remove(user.username)
                         followButton.text = "Segui"
                     } else {
                         // Utente non seguito, quindi aggiungilo
-                        followedUsers.add(user.Username)
+                        followedUsers.add(user.username)
                         followButton.text = "Non seguire più"
                     }
 
                     // Aggiorna nel database
-                    db.child("users").child(userId).child("followedUsers").setValue(followedUsers)
+                    db.child("users").child(userId).child("utentiSeguiti").setValue(followedUsers)
                         .addOnSuccessListener {
                             Toast.makeText(context, "Aggiornamento avvenuto con successo", Toast.LENGTH_SHORT).show()
                         }

@@ -41,6 +41,9 @@ class HomeFragment : Fragment() {
         val buttonViewFollowedPosts: Button = view.findViewById(R.id.btn_seguiti)
         val buttonViewPersonalPosts: Button = view.findViewById(R.id.btn_personali)
 
+        database = FirebaseDatabase.getInstance().reference
+
+
         buttonViewAllPosts.setOnClickListener { loadAllPosts() }
         buttonViewFollowedPosts.setOnClickListener { loadFollowedPosts() }
         buttonViewPersonalPosts.setOnClickListener { loadPersonalPosts() }
@@ -54,11 +57,12 @@ class HomeFragment : Fragment() {
                 postList.clear()
                 for (postSnapshot in snapshot.children) {
                     val post = postSnapshot.getValue(Post::class.java)
-                    if (post != null && post.uid != currentUserUid && !followedUserIds.contains(post.uid)) {
+                    if (post != null) {
                         postList.add(post)
                     }
                 }
-                postAdapter.notifyDataSetChanged() // Update RecyclerView
+                postAdapter = PostAdapter(postList, false)
+                recyclerView.adapter = postAdapter
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -88,7 +92,8 @@ class HomeFragment : Fragment() {
                                         postList.add(post)
                                     }
                                 }
-                                postAdapter.notifyDataSetChanged() // Update RecyclerView
+                                postAdapter = PostAdapter(postList, false)
+                                recyclerView.adapter = postAdapter
                             }
 
                             override fun onCancelled(error: DatabaseError) {
@@ -116,7 +121,8 @@ class HomeFragment : Fragment() {
                                 postList.add(post)
                             }
                         }
-                        postAdapter.notifyDataSetChanged() // Update RecyclerView
+                        postAdapter = PostAdapter(postList, true) // pass true for isPersonalSection
+                        recyclerView.adapter = postAdapter
                     }
 
                     override fun onCancelled(error: DatabaseError) {

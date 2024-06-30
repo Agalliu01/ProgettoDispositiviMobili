@@ -19,25 +19,23 @@ import java.io.Serializable
 
 class SignUpActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_sign_up)
 
         auth = FirebaseAuth.getInstance()
-        db = FirebaseFirestore.getInstance()
 
         val nomeEditText = findViewById<EditText>(R.id.nomeEditText)
         val cognomeEditText = findViewById<EditText>(R.id.cognomeEditText)
         val emailEditText = findViewById<EditText>(R.id.emailEditText)
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
-        val usernameEditText=findViewById<EditText>(R.id.usernameEditText)
+        val usernameEditText = findViewById<EditText>(R.id.usernameEditText)
         val continuaButton = findViewById<Button>(R.id.continuaButton)
         val loginMover = findViewById<TextView>(R.id.loginMover)
 
         loginMover.setOnClickListener {
-            startActivity(Intent(this,LoginMainActivityLauncher::class.java))
+            startActivity(Intent(this, LoginMainActivityLauncher::class.java))
         }
 
         continuaButton.setOnClickListener {
@@ -45,7 +43,7 @@ class SignUpActivity : AppCompatActivity() {
             val cognome = cognomeEditText.text.toString().trim()
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
-            val username=usernameEditText.text.toString().trim()
+            val username = usernameEditText.text.toString().trim()
 
             if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Tutti i campi sono obbligatori", Toast.LENGTH_SHORT).show()
@@ -81,12 +79,10 @@ class SignUpActivity : AppCompatActivity() {
 
     private fun createUserWithUsername(nome: String, cognome: String, email: String, password: String, username: String) {
         auth.createUserWithEmailAndPassword(email, password)
-
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
-
-                    val userDetails = User(currentUserUid.toString(),nome, cognome, username, email, password,
+                    val userId = auth.currentUser?.uid
+                    val userDetails = User(userId ?: "", nome, cognome, username, email, password,
                         mutableListOf(), mutableListOf()
                     )
                     saveUserDetails(userDetails)

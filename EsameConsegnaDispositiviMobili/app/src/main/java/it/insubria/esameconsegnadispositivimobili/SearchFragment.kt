@@ -1,5 +1,6 @@
 package it.insubria.esameconsegnadispositivimobili
 
+import android.content.ContentValues.TAG
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -54,34 +55,42 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
     }
 
     private fun loadUsersFromFirebase() {
-        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
-        val   database = FirebaseDatabase.getInstance().reference
-        database.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                userList.clear()
-                for (postSnapshot in snapshot.children) {
-                    val user = postSnapshot.getValue(User::class.java)
-                    if (user != null && user.uid != currentUserUid) {
-                        userList.add(user)
-                    }
-                }
-                userAdapter.notifyDataSetChanged() // Update RecyclerView
-            filteredUserList = userList
-            userAdapter.updateUsers(filteredUserList)
-        }
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+        val database = FirebaseDatabase.getInstance()
 
-            override fun onCancelled(error: DatabaseError) {
-                // Gestisci l'errore
-                Log.e("RealtimeDatabase", "Error getting data", error.toException())
-            }
-        })
+        // Check if currentUser is not null before using it
+        currentUser?.let { user ->
+            val uid = user.uid
+            val userRef = database.getReference("users")
+
+            userRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    userList.clear()
+                    for (postSnapshot in snapshot.children) {
+                        val user = postSnapshot.getValue(User::class.java)
+                        if (user != null && user.uid != user.uid) {
+                            userList.add(user)
+                        }
+                    }
+                    filteredUserList = userList
+                    userAdapter.updateUsers(filteredUserList)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.w(TAG, "Failed to load current user's profile image.", error.toException())
+                }
+            })
+        } ?: run {
+            Log.e(TAG, "Current user is null")
+        }
     }
 
     private fun filterUsers(query: String) {
         filteredUserList = if (query.isEmpty()) {
             userList
         } else {
-            userList.filter { it.Username.contains(query, ignoreCase = true) }
+            userList.filter { it.username.contains(query, ignoreCase = true) }
         }
         userAdapter.updateUsers(filteredUserList)
     }
@@ -93,23 +102,23 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
             val db = Firebase.database.reference
 
             db.child("users").child(userId).get().addOnSuccessListener { dataSnapshot ->
-                val followedUsers = dataSnapshot.child("followedUsers").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
+                val followedUsers = dataSnapshot.child("utentiSeguiti").getValue(object : GenericTypeIndicator<ArrayList<String>>() {})
 
                 if (followedUsers != null) {
                     val usersList = followedUsers.toMutableList()
 
-                    if (usersList.contains(user.Username)) {
+                    if (usersList.contains(user.username)) {
                         // Utente già seguito, quindi rimuovilo
-                        usersList.remove(user.Username)
+                        usersList.remove(user.username)
                         followButton.text = "Segui"
                     } else {
                         // Utente non seguito, quindi aggiungilo
-                        usersList.add(user.Username)
+                        usersList.add(user.username)
                         followButton.text = "Non seguire più"
                     }
 
                     // Aggiorna nel database
-                    db.child("users").child(userId).child("followedUsers").setValue(usersList)
+                    db.child("users").child(userId).child("utentiSeguiti").setValue(usersList)
                         .addOnSuccessListener {
                             // Aggiornamento riuscito
                         }
