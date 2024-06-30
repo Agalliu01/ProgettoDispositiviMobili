@@ -14,12 +14,15 @@
         android:padding="16dp">
 
         <!-- Primo pulsante -->
-        <Button
-            android:id="@+id/btn_tutti"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+        <TextView
+
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tutti"/>
+            android:gravity="center"
+            android:text="Home"
+            android:textColor="#1E88E5"
+            android:textSize="50sp"/>
+
 
         <!-- Secondo pulsante -->
 

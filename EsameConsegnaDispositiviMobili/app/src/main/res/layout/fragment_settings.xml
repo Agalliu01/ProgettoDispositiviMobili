@@ -13,6 +13,14 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="16dp">
+            <TextView
+
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Settings"
+                android:textColor="#1E88E5"
+                android:textSize="50sp"/>
 
             <!-- ImageView per visualizzare l'immagine del profilo -->
             <ImageView

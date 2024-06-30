@@ -10,6 +10,14 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="16dp">
+        <TextView
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Add post"
+            android:textColor="#1E88E5"
+            android:textSize="50sp"/>
 
         <EditText
             android:id="@+id/descriptionEditText"
