@@ -69,7 +69,7 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
                     userList.clear()
                     for (postSnapshot in snapshot.children) {
                         val user = postSnapshot.getValue(User::class.java)
-                        if (user != null  ) {
+                        if (user != null && user.uid!=uid  ) {
                             userList.add(user)
                         }
                     }

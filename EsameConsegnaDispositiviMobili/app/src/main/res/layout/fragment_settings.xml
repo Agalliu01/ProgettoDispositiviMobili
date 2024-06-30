@@ -140,6 +140,10 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
+
+                <!-- Campo per la password corrente -->
+
+
                 <TextView
                     android:id="@+id/password_toggle"
                     android:layout_width="match_parent"
@@ -155,6 +159,24 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
+                <TextView
+                    android:id="@+id/currentPasswordTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="#E53935"
+                    android:text="**per qualsiasi modifica inserisci password corrente***"
+                    android:textSize="15sp"
+                    android:paddingBottom="8dp" />
+                <EditText
+                    android:id="@+id/currentPasswordEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Inserisci password corrente"
+                    android:textColorHint="@color/black"
+                    android:inputType="textPassword"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:paddingBottom="8dp" />
                 <Button
                     android:id="@+id/confermaButton"
                     android:layout_width="match_parent"
@@ -163,6 +185,7 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:paddingBottom="8dp" />
+
                 <Button
                     android:id="@+id/logoutBtn"
                     android:layout_width="match_parent"

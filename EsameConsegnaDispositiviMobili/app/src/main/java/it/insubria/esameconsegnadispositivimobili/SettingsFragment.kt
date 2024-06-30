@@ -13,9 +13,11 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.*
@@ -170,78 +172,83 @@ class SettingsFragment : Fragment() {
         val nuovoUsername = view?.findViewById<EditText>(R.id.usernameEditText)?.text.toString().trim()
         val nuovaEmail = view?.findViewById<EditText>(R.id.emailEditText)?.text.toString().trim()
         val nuovaPassword = view?.findViewById<EditText>(R.id.passwordEditText)?.text.toString().trim()
+        val currentPassword = view?.findViewById<EditText>(R.id.currentPasswordEditText)?.text.toString().trim()
+
+        // Verifica che la password corrente non sia vuota
+        if (currentPassword.isEmpty()) {
+
+            Toast.makeText(context, "Per favore, inserisci la password corrente", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val profileUpdatesBuilder = UserProfileChangeRequest.Builder()
 
-        // Aggiornamento del nome utente se fornito
         if (nuovoUsername.isNotEmpty()) {
             profileUpdatesBuilder.setDisplayName(nuovoUsername)
         }
 
-        // Costruisci le modifiche al profilo
         val profileUpdates = profileUpdatesBuilder.build()
 
-        user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
-            if (profileUpdateTask.isSuccessful) {
-                // Aggiornamento del profilo completato con successo
-                // Aggiorna l'email solo se fornita e diversa dall'attuale
-                if (nuovaEmail.isNotEmpty() && nuovaEmail != user.email) {
-                    user.updateEmail(nuovaEmail).addOnCompleteListener { emailUpdateTask ->
-                        if (emailUpdateTask.isSuccessful) {
-                            // Aggiornamento dell'email completato con successo
-                            Toast.makeText(context, "Email aggiornata con successo", Toast.LENGTH_SHORT).show()
+        // Re-autentica l'utente prima di apportare modifiche
+        user?.reauthenticate(EmailAuthProvider.getCredential(user.email!!, currentPassword))
+            ?.addOnCompleteListener { reauthTask ->
+                if (reauthTask.isSuccessful) {
+                    user.updateProfile(profileUpdates).addOnCompleteListener { profileUpdateTask ->
+                        if (profileUpdateTask.isSuccessful) {
+                            if (nuovaEmail.isNotEmpty() && nuovaEmail != user.email) {
+                                user.updateEmail(nuovaEmail).addOnCompleteListener { emailUpdateTask ->
+                                    if (emailUpdateTask.isSuccessful) {
+                                        Toast.makeText(context, "Email aggiornata con successo", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Errore durante l'aggiornamento dell'email: ${emailUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+
+                            if (nuovaPassword.isNotEmpty()) {
+                                user.updatePassword(nuovaPassword).addOnCompleteListener { passwordUpdateTask ->
+                                    if (passwordUpdateTask.isSuccessful) {
+                                        Toast.makeText(context, "Password aggiornata con successo", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Errore durante l'aggiornamento della password: ${passwordUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+
+                            val dataToUpdate = mutableMapOf<String, Any>()
+                            if (nuovoNome.isNotEmpty()) {
+                                dataToUpdate["nome"] = nuovoNome
+                            }
+                            if (nuovoCognome.isNotEmpty()) {
+                                dataToUpdate["cognome"] = nuovoCognome
+                            }
+                            if (nuovoUsername.isNotEmpty()) {
+                                dataToUpdate["username"] = nuovoUsername
+                            }
+
+                            if (dataToUpdate.isNotEmpty()) {
+                                val userId = user?.uid ?: ""
+                                val userRef = database.reference.child("users").child(userId)
+                                userRef.updateChildren(dataToUpdate)
+                                    .addOnSuccessListener {
+                                        observeUserData()
+                                        Toast.makeText(context, "Modifiche salvate con successo", Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener { e ->
+                                        Toast.makeText(context, "Errore durante il salvataggio delle modifiche: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
                         } else {
-                            // Gestione dell'errore di aggiornamento dell'email
-                            Toast.makeText(context, "Errore durante l'aggiornamento dell'email: ${emailUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Errore durante l'aggiornamento del profilo: ${profileUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
+                } else {
+                    Toast.makeText(context, "Errore durante la re-autenticazione: ${reauthTask.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
-
-                // Aggiornamento della password solo se fornita
-                if (nuovaPassword.isNotEmpty()) {
-                    user.updatePassword(nuovaPassword).addOnCompleteListener { passwordUpdateTask ->
-                        if (passwordUpdateTask.isSuccessful) {
-                            // Aggiornamento della password completato con successo
-                            Toast.makeText(context, "Password aggiornata con successo", Toast.LENGTH_SHORT).show()
-                        } else {
-                            // Gestione dell'errore di aggiornamento della password
-                            Toast.makeText(context, "Errore durante l'aggiornamento della password: ${passwordUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-
-                // Solo se tutto è andato bene, esegui l'aggiornamento nel Realtime Database
-                val dataToUpdate = mutableMapOf<String, Any>()
-                if (nuovoNome.isNotEmpty()) {
-                    dataToUpdate["nome"] = nuovoNome
-                }
-                if (nuovoCognome.isNotEmpty()) {
-                    dataToUpdate["cognome"] = nuovoCognome
-                }
-                if (nuovoUsername.isNotEmpty()) {
-                    dataToUpdate["username"] = nuovoUsername
-                }
-
-                // Aggiorna nel Realtime Database solo se ci sono modifiche da applicare
-                if (dataToUpdate.isNotEmpty()) {
-                    val userId = user?.uid ?: ""
-                    val userRef = database.reference.child("users").child(userId)
-                    userRef.updateChildren(dataToUpdate)
-                        .addOnSuccessListener {
-                            // Dopo aver aggiornato i dati, aggiorna l'UI
-                            observeUserData() // Questo metodo aggiorna l'interfaccia utente con i nuovi dati
-                            Toast.makeText(context, "Modifiche salvate con successo", Toast.LENGTH_SHORT).show()
-                        }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(context, "Errore durante il salvataggio delle modifiche: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                }
-            } else {
-                // Gestione dell'errore di aggiornamento del profilo
-                Toast.makeText(context, "Errore durante l'aggiornamento del profilo: ${profileUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
             }
-        }
     }
+
+
 
     private fun uploadImageToFirebase() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
