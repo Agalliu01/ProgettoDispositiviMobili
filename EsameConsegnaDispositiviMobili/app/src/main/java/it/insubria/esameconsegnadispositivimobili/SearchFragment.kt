@@ -111,13 +111,13 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
                     if (usersList.contains(user.username)) {
                         // Utente già seguito, quindi rimuovilo
                         usersList.remove(user.username)
-                        followButton.text = "Segui"
+                          followButton.text = "Segui"
           //              followButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red_outline)));
           //              followButton.setTextColor(getResources().getColor(R.color.black_text));
                     } else {
                         // Utente non seguito, quindi aggiungilo
                         usersList.add(user.username)
-                        followButton.text = "Non seguire più"
+                       followButton.text = "Non seguire più"
                     }
 
                     // Aggiorna nel database

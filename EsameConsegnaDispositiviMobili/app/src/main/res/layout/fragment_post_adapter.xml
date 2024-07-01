@@ -46,19 +46,14 @@
                 android:clickable="true"
                 android:focusable="true" />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/common_google_signin_btn_icon_dark_focused"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp" />
+
 
             <!-- Icona accanto all'username -->
             <ImageView
                 android:id="@+id/image_delete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/icons8_x_48"
+                android:src="@drawable/icons8_impostazioni_50"
                 android:layout_marginStart="8dp"
                 android:layout_marginEnd="8dp" />
         </LinearLayout>

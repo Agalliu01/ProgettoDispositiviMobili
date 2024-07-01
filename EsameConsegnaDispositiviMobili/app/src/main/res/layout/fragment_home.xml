@@ -6,14 +6,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- TextView per il titolo "Home" -->
+    <View
+        android:id="@+id/topBackground"
+        android:layout_width="wrap_content"
+        android:layout_height="200dp"
+        android:background="#1E88E5"
+
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toTopOf="@id/txtTitle"
+    android:layout_marginBottom="32dp"  />
+
+
+
     <TextView
         android:id="@+id/txtTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Home"
-        android:textSize="36sp"
-        android:textColor="#1E88E5"
+        android:textSize="50sp"
+        android:textColor="#FFFFFF"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"

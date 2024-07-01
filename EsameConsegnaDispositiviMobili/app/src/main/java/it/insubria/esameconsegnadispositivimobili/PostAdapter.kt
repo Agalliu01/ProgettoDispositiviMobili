@@ -10,6 +10,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.URLUtil
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupMenu
@@ -157,7 +158,7 @@ class PostAdapter(
 
     private fun showDeleteConfirmationDialog(context: Context, post: Post) {
         val builder = AlertDialog.Builder(context)
-        builder.setTitle("Confirm Deletion")
+        builder.setTitle("Delete post")
         builder.setMessage("Are you sure you want to delete this post?")
 
         builder.setPositiveButton("Yes") { dialog, which ->
@@ -266,10 +267,13 @@ class PostAdapter(
     private fun openWebsite(context: Context, post: Post) {
         val url = post.link
 
-        if (url.isNotEmpty()) {
+        if (url.isNotEmpty() && URLUtil.isValidUrl(url)) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            // Usa Intent.createChooser per permettere all'utente di scegliere l'applicazione
+            val chooser = Intent.createChooser(intent, "Apri con")
+
             if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
+                context.startActivity(chooser)
             } else {
                 Toast.makeText(context, "Nessuna app disponibile per aprire il link", Toast.LENGTH_SHORT).show()
             }
@@ -277,6 +281,7 @@ class PostAdapter(
             Toast.makeText(context, "URL non valido", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 
 

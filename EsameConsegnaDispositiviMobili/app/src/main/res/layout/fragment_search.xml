@@ -2,24 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-
-    android:padding="16dp">
-
+    android:orientation="vertical">
 
     <TextView
-
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="Search"
-        android:textColor="#1E88E5"
-        android:textSize="50sp"/>
+        android:background="@color/accent_color"
+        android:textColor="#EEF2F6"
+        android:textSize="50sp" />
 
     <EditText
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
         android:background="@color/material_dynamic_neutral50"
         android:drawableLeft="@drawable/icons8_ricerca_48"
         android:drawablePadding="8dp"

@@ -63,7 +63,11 @@ class AccountAdapter(
         }
 
         fun bind(user: User) {
-            usernameTextView.text = user.username
+            if(user.username.length<=1)
+                usernameTextView.text="admin"
+            else
+                usernameTextView.text = user.username
+
             profileImageView.setImageResource(R.drawable.icons8_busto_in_sagoma_48)
             // Carica l'immagine profilo con Glide
             Glide.with(context)
@@ -72,7 +76,7 @@ class AccountAdapter(
                 .error(R.drawable.icons8_busto_in_sagoma_48) // Immagine di fallback in caso di errore
                 .centerCrop()
                 .into(profileImageView)
-            toggleFollow(user, followButton)
+           // toggleFollow(user, followButton)
 
             // Verifica se l'utente è seguito o meno
             if (currentUserUid != null) {
@@ -107,12 +111,12 @@ class AccountAdapter(
                         // Utente già seguito, quindi rimuovilo
                         followedUsers.remove(user.username)
                         followButton.text = "Segui"
-                        followButton.setBackgroundColor(Color.GREEN)
+                     //   followButton.setBackgroundColor(Color.GREEN)
                     } else {
                         // Utente non seguito, quindi aggiungilo
                         followedUsers.add(user.username)
                         followButton.text = "Non seguire più"
-                        followButton.setBackgroundColor(Color.RED)
+                       // followButton.setBackgroundColor(Color.RED)
 
                     }
 
