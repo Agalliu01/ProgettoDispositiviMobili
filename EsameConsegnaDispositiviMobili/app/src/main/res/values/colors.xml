@@ -1,5 +1,5 @@
 
 <resources>
-
+    <color name="black_text">#000000</color> <!-- Nero per il testo -->
 </resources>
 

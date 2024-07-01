@@ -27,6 +27,10 @@ import com.google.firebase.storage.StorageReference
 import com.squareup.picasso.Picasso
 
 class SettingsFragment : Fragment() {
+
+    //SISTEMARE QUANDO SI SALVANO INFO DI RERIMPOSTARE SCHERMATA!
+
+
     private lateinit var profileImageView: ImageView
     private lateinit var changeImageIcon: ImageView
     private lateinit var usernameTextView: TextView

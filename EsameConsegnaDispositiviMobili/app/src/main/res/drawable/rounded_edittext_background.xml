@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#0A9C9C9C" /> <!-- Colore di riempimento dello sfondo -->
+    <corners android:radius="20dp" /> <!-- Raggio degli angoli -->
+    <padding android:left="8dp" android:right="8dp" /> <!-- Padding interno se necessario -->
+</shape>

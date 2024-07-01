@@ -8,7 +8,7 @@
     <color name="black">#FF000000</color> <!-- Nero -->
     <color name="white">#FFFFFFFF</color> <!-- Bianco -->
     <color name="red_outline">#FF0000</color> <!-- Rosso per il contorno -->
-    <color name="black_text">#000000</color> <!-- Nero per il testo -->
+
     <color name="custom_button_color">#FF5722</color> <!-- Colore personalizzato per i pulsanti -->
     <color name="button_border_color">#FFC107</color> <!-- Colore del bordo del pulsante -->
 

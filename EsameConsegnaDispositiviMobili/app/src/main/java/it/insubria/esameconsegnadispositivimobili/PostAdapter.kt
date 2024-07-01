@@ -1,14 +1,18 @@
 package it.insubria.esameconsegnadispositivimobili
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat.startActivity
@@ -92,9 +96,11 @@ class PostAdapter(
         val currentPost = postList[position]
         holder.usernameTextView.text ="Post di: "+currentPost.username
 
-
-
-        holder.descriptionTextView.text = "Descrizione Post:\n"+currentPost.description
+        val des=currentPost.description
+        if(des.length>1)
+            holder.descriptionTextView.text = "Descrizione: \n"+currentPost.description
+        else
+            holder.descriptionTextView.text="Nessuna descrizione"
         holder.likesCountTextView.text = "Mi piace: ${currentPost.likedBy?.size ?: 0}"
 
         // Caricamento dell'immagine del post
@@ -107,7 +113,8 @@ class PostAdapter(
 
         // Gestione del click sull'icona per eliminare il post
         holder.deleteIcon.setOnClickListener {
-            deletePost(holder.itemView.context, currentPost)
+            showDeleteConfirmationDialog( holder.itemView.context, currentPost)
+        // deletePost(holder.itemView.context, currentPost)
         }
 
         // Gestione del click sull'icona dei "mi piace"
@@ -146,6 +153,24 @@ class PostAdapter(
 
         // Configurazione del RecyclerView dei commenti
         setupCommentsRecyclerView(holder.recyclerViewComments, currentPost)
+    }
+
+    private fun showDeleteConfirmationDialog(context: Context, post: Post) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Confirm Deletion")
+        builder.setMessage("Are you sure you want to delete this post?")
+
+        builder.setPositiveButton("Yes") { dialog, which ->
+            deletePost(context, post)
+            Toast.makeText(context, "Post deleted", Toast.LENGTH_SHORT).show()
+        }
+
+        builder.setNegativeButton("No") { dialog, which ->
+            dialog.dismiss()
+        }
+
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
     }
 
     override fun getItemCount(): Int {

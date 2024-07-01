@@ -15,11 +15,18 @@
         android:text="Search"
         android:textColor="#1E88E5"
         android:textSize="50sp"/>
+
     <EditText
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Cerca per username" />
+        android:background="@color/material_dynamic_neutral50"
+        android:drawableLeft="@drawable/icons8_ricerca_48"
+        android:drawablePadding="8dp"
+        android:hint="Cerca per username"
+        android:inputType="text"
+        android:paddingLeft="1dp"
+        android:paddingRight="16dp" />
 
     <ScrollView
         android:layout_width="match_parent"

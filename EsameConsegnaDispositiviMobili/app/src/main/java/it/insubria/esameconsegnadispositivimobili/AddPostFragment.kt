@@ -21,11 +21,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 
-
 class AddPostFragment : Fragment() {
-
-
-
 
   private lateinit var descriptionEditText: EditText
   private lateinit var linkEditText: EditText
@@ -88,12 +84,20 @@ class AddPostFragment : Fragment() {
     val link = linkEditText.text.toString().trim()
 
     if (description.length > 500) {
-      Toast.makeText(requireContext(), "La descrizione non può superare i 500 caratteri", Toast.LENGTH_SHORT).show()
+      Toast.makeText(
+        requireContext(),
+        "La descrizione non può superare i 500 caratteri",
+        Toast.LENGTH_SHORT
+      ).show()
       return
     }
 
     if (selectedImageUri == null) {
-      Toast.makeText(requireContext(), "Seleziona un'immagine prima di pubblicare", Toast.LENGTH_SHORT).show()
+      Toast.makeText(
+        requireContext(),
+        "Seleziona un'immagine prima di pubblicare",
+        Toast.LENGTH_SHORT
+      ).show()
       return
     }
 
@@ -102,25 +106,22 @@ class AddPostFragment : Fragment() {
 
   private fun uploadPost(description: String, link: String) {
     val currentUser = auth.currentUser ?: return
-    var username="admin"
+    var username = "admin"
     val database = FirebaseDatabase.getInstance()
     val postsRef = database.getReference("posts")
-    val usernameRef=database.getReference("users").child(currentUser.uid).child("username")
+    val usernameRef = database.getReference("users").child(currentUser.uid).child("username")
+    val newPostKey = postsRef.push().key ?: ""
+    val commentsUidLista = postsRef.child(newPostKey).child("comments").push().key ?: ""
+
     usernameRef.addListenerForSingleValueEvent(object : ValueEventListener {
       override fun onDataChange(dataSnapshot: DataSnapshot) {
-        // Qui ottieni l'username dal dataSnapshot
-           username = dataSnapshot.value as String
-
+        username = dataSnapshot.value as String
       }
 
       override fun onCancelled(databaseError: DatabaseError) {
-        // Gestione degli errori, se necessario
         println("Errore nel recupero dell'username: ${databaseError.message}")
       }
     })
-
-    val newPostKey = postsRef.push().key ?: ""
-    val commentsUidLista = postsRef.child(newPostKey).child("comments").push().key ?: ""
 
     val storageRef = FirebaseStorage.getInstance().reference
     val imageRef = storageRef.child("images/$newPostKey.jpg")
@@ -144,13 +145,12 @@ class AddPostFragment : Fragment() {
           username = username,
           description = description,
           imageUrl = imageUrl,
-          link = linkEditText.toString(),
+          link = link,
           likedBy = mutableListOf(),
-          comments = mutableListOf(), // Lista vuota, senza commenti iniziali
-          commentsUidLista = commentsUidLista // Aggiungi l'identificatore univoco per i commenti
+          comments = mutableListOf(),
+          commentsUidLista = commentsUidLista,
         )
 
-        // Save the post to "posts/{newPostKey}"
         postsRef.child(newPostKey).setValue(post)
           .addOnSuccessListener {
             Toast.makeText(requireContext(), "Post pubblicato con successo", Toast.LENGTH_SHORT).show()
@@ -164,11 +164,6 @@ class AddPostFragment : Fragment() {
       }
     }
   }
-
-
-
-
-
 
   private fun navigateToFragment(fragment: Fragment) {
     val fragmentManager = parentFragmentManager

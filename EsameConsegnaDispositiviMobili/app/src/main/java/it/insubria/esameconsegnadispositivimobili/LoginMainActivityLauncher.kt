@@ -1,17 +1,19 @@
 package it.insubria.esameconsegnadispositivimobili
-
+import android.app.ProgressDialog
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginMainActivityLauncher : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme_Dark)
@@ -20,40 +22,58 @@ class LoginMainActivityLauncher : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance() // Prendo l'istanza del database
 
-        val emailEditText = findViewById<EditText>(R.id.emailEditText) // Inizializzo variabili collegate con i bottoni e TextView
+        val emailEditText = findViewById<EditText>(R.id.emailEditText)
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
         val loginButton = findViewById<Button>(R.id.loginBtn)
         val registrazioneMover = findViewById<TextView>(R.id.registrazioneMover)
 
-        loginButton.setOnClickListener { // Associo listener ai bottoni
+        progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Attendere...")
+        progressDialog.setCancelable(false)
+
+        loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty()) { // Mostro messaggi ERRORE se sbaglia...
+            if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Email e password sono obbligatori", Toast.LENGTH_SHORT).show()
             } else {
-                loginUser(email, password) // Altrimenti faccio login
+                showProgressDialog()
+                loginUser(email, password)
             }
         }
 
         registrazioneMover.setOnClickListener {
-            val intent = Intent(this,SignUpActivity::class.java)
+            val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
+        }
+    }
+
+    private fun showProgressDialog() {
+        if (!progressDialog.isShowing) {
+            progressDialog.show()
+        }
+    }
+
+    private fun hideProgressDialog() {
+        if (progressDialog.isShowing) {
+            progressDialog.dismiss()
         }
     }
 
     private fun loginUser(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
+                hideProgressDialog()
                 if (task.isSuccessful) {
-                    // Login successful
                     Toast.makeText(this, "Login avvenuto con successo", Toast.LENGTH_SHORT).show()
-                    // Proceed to the next activity
-                    val intent = Intent(this,FirstPageUserActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    // Delay di 1 secondo prima di passare all'activity successiva
+                    Handler().postDelayed({
+                        val intent = Intent(this, FirstPageUserActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }, 1000)
                 } else {
-                    // If login fails, display a message to the user.
                     Toast.makeText(this, "Autenticazione fallita: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -62,13 +82,11 @@ class LoginMainActivityLauncher : AppCompatActivity() {
     private fun registerUser(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
+                hideProgressDialog()
                 if (task.isSuccessful) {
-                    // Registration successful
                     Toast.makeText(this, "Registrazione avvenuta con successo", Toast.LENGTH_SHORT).show()
-                    // Automatically log the user in
                     loginUser(email, password)
                 } else {
-                    // If registration fails, display a message to the user.
                     Toast.makeText(this, "Registrazione fallita: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }

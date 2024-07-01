@@ -72,6 +72,7 @@ class AccountAdapter(
                 .error(R.drawable.icons8_busto_in_sagoma_48) // Immagine di fallback in caso di errore
                 .centerCrop()
                 .into(profileImageView)
+            toggleFollow(user, followButton)
 
             // Verifica se l'utente è seguito o meno
             if (currentUserUid != null) {
@@ -118,7 +119,7 @@ class AccountAdapter(
                     // Aggiorna nel database
                     db.child("users").child(userId).child("utentiSeguiti").setValue(followedUsers)
                         .addOnSuccessListener {
-                            Toast.makeText(context, "Aggiornamento avvenuto con successo", Toast.LENGTH_SHORT).show()
+                       //     Toast.makeText(context, "Aggiornamento avvenuto con successo", Toast.LENGTH_SHORT).show()
                         }
                         .addOnFailureListener { e ->
                             Toast.makeText(context, "Errore durante l'aggiornamento dei dati utente: ${e.message}", Toast.LENGTH_SHORT).show()

@@ -1,29 +1,28 @@
 package it.insubria.esameconsegnadispositivimobili
-
+import android.app.ProgressDialog
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.firestore.FirebaseFirestore
-import java.io.Serializable
 
 class SignUpActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme) // Applica il tema personalizzato
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_sign_up)
 
         auth = FirebaseAuth.getInstance()
@@ -35,6 +34,10 @@ class SignUpActivity : AppCompatActivity() {
         val usernameEditText = findViewById<EditText>(R.id.usernameEditText)
         val continuaButton = findViewById<Button>(R.id.continuaButton)
         val loginMover = findViewById<TextView>(R.id.loginMover)
+
+        progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Attendere...")
+        progressDialog.setCancelable(false)
 
         loginMover.setOnClickListener {
             startActivity(Intent(this, LoginMainActivityLauncher::class.java))
@@ -50,14 +53,28 @@ class SignUpActivity : AppCompatActivity() {
             if (nome.isEmpty() || cognome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Tutti i campi sono obbligatori", Toast.LENGTH_SHORT).show()
             } else {
+                showProgressDialog()
                 createUserWithEmailPassword(nome, cognome, email, password, username)
             }
+        }
+    }
+
+    private fun showProgressDialog() {
+        if (!progressDialog.isShowing) {
+            progressDialog.show()
+        }
+    }
+
+    private fun hideProgressDialog() {
+        if (progressDialog.isShowing) {
+            progressDialog.dismiss()
         }
     }
 
     private fun createUserWithEmailPassword(nome: String, cognome: String, email: String, password: String, username: String) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
+                hideProgressDialog()
                 if (task.isSuccessful) {
                     // Se la registrazione è riuscita, ottieni l'UID dell'utente
                     val userId = auth.currentUser?.uid
@@ -118,7 +135,7 @@ class SignUpActivity : AppCompatActivity() {
         usersRef.child(uid).setValue(userDetails)
             .addOnSuccessListener {
                 Toast.makeText(this@SignUpActivity, "Registrazione completata con successo", Toast.LENGTH_SHORT).show()
-                navigateToSignUpUsernameActivity(userDetails)
+                navigateToFirstPageUserActivity()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this@SignUpActivity, "Errore durante il salvataggio dei dettagli dell'utente: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -126,9 +143,12 @@ class SignUpActivity : AppCompatActivity() {
             }
     }
 
-    private fun navigateToSignUpUsernameActivity(userDetails: User) {
-        val intent = Intent(this, FirstPageUserActivity::class.java)
-        startActivity(intent)
-        finish()
+    private fun navigateToFirstPageUserActivity() {
+        // Delay di 1.5 secondi prima di passare all'activity successiva
+        Handler().postDelayed({
+            val intent = Intent(this, FirstPageUserActivity::class.java)
+            startActivity(intent)
+            finish()
+        }, 1000)
     }
 }
