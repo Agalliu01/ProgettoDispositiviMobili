@@ -77,7 +77,8 @@ class AddPostFragment : Fragment() {
       }
     }
   }
-
+//Le condizioni per postare possono essere ovviamente cambiate,scelte queste semplicemente per questione "visiva
+  //potre permettere anche di mettere post senza immagine o senza nulla, per questione "visiva", ho preferito metterle cosi...
   private fun validateAndUploadPost() {//ci sono condizioni per upload post
     val currentUser = auth.currentUser
     val uid = currentUser?.uid ?: return
