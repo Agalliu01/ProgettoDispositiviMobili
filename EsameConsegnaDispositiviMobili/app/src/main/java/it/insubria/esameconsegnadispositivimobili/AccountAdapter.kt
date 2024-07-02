@@ -15,30 +15,31 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 
+//****Classe adapter utilizzata per visualizzare gli utenti con immagine profilo, username e pulsante follow/unfllow
 class AccountAdapter(
     private val context: Context,
     private var userList: List<User>,
-    private val listener: OnItemClickListener
+    private val listener: OnItemClickListener// non implementato, sarebbe per un listener su click
 ) : RecyclerView.Adapter<AccountAdapter.UserViewHolder>() {
 
-    private val db = Firebase.database.reference
-    private val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+    private val db = Firebase.database.reference//prendiamo referenze database istanza attuale
+    private val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid//utente loggato
 
     interface OnItemClickListener {
         fun onItemClick(user: User, followButton: Button)
     }
 
     fun updateUsers(updatedList: List<User>) {
-        userList = updatedList
+        userList = updatedList//metodo per "aggiornare" dinamicamente la lista utenti con notifica successiva
         notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.fragment_account_adapter, parent, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.fragment_account_adapter, parent, false)//creiamo la vista dandogli anche adapter e riferimenti
         return UserViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: UserViewHolder, position: Int) {//
         val user = userList[position]
         holder.bind(user)
     }
@@ -47,13 +48,13 @@ class AccountAdapter(
         return userList.size
     }
 
-    inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {//assegnamo valori per username,immagine profilo e followbutton per utenti
         private val usernameTextView: TextView = itemView.findViewById(R.id.usernameTextView)
         private val profileImageView: ImageView = itemView.findViewById(R.id.profileImageView)
         private val followButton: Button = itemView.findViewById(R.id.followButton)
 
         init {
-            followButton.setOnClickListener {
+            followButton.setOnClickListener {//istanziamo un listener per gli utenti in modo tale da permettere il "seguire"
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val user = userList[position]
@@ -63,23 +64,23 @@ class AccountAdapter(
         }
 
         fun bind(user: User) {
-            if(user.username.length<=1)
+            if(user.username.length<=1)//se utente NON possiede username viene visualizzato admin per convenzione
                 usernameTextView.text="admin"
             else
-                usernameTextView.text = user.username
+                usernameTextView.text = user.username//altrimenti viene visualizzato normale username utente
 
             profileImageView.setImageResource(R.drawable.icons8_busto_in_sagoma_48)
             // Carica l'immagine profilo con Glide
             Glide.with(context)
-                .load(user.profileImageUrl) // Assumi che user.imageUrl contenga l'URL dell'immagine profilo
+                .load(user.profileImageUrl) //
                 .placeholder(R.drawable.icons8_busto_in_sagoma_48) // Immagine placeholder mentre carica
                 .error(R.drawable.icons8_busto_in_sagoma_48) // Immagine di fallback in caso di errore
                 .centerCrop()
-                .into(profileImageView)
+                .into(profileImageView)//carichiamo immagine utente
            // toggleFollow(user, followButton)
 
             // Verifica se l'utente è seguito o meno
-            if (currentUserUid != null) {
+            if (currentUserUid != null) {//aggiorniamo dinamicamente il pulsante con sostituzione testo dopo verifica su firebase realtime
                 db.child("users").child(currentUserUid).child("utentiSeguiti")
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -99,7 +100,7 @@ class AccountAdapter(
             }
         }
     }
-
+//FUNZIONE simile al bind, ma viene chiamata poi quando pulsante viene schiacciato, il bind al momento della creazione
     private fun toggleFollow(user: User, followButton: Button) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId != null) {

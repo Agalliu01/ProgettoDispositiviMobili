@@ -186,6 +186,8 @@
                 android:text="Salva modifiche"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:background="#64DD17"
+                android:textColor="@color/black"
                 android:paddingBottom="8dp" />
 
             <Button
@@ -195,7 +197,8 @@
                 android:text="Logout"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#E53935" />
+                android:background="@color/red_outline"
+                android:textColor="@color/black" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

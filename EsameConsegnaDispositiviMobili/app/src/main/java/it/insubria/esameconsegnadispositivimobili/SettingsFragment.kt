@@ -231,6 +231,7 @@ class SettingsFragment : Fragment() {
                                 user.updatePassword(nuovaPassword).addOnCompleteListener { passwordUpdateTask ->
                                     if (passwordUpdateTask.isSuccessful) {
                                         Toast.makeText(context, "Password aggiornata con successo", Toast.LENGTH_SHORT).show()
+                                        resetFragment()
                                     } else {
                                         Toast.makeText(context, "Errore durante l'aggiornamento della password: ${passwordUpdateTask.exception?.message}", Toast.LENGTH_SHORT).show()
                                     }
@@ -255,6 +256,7 @@ class SettingsFragment : Fragment() {
                                     .addOnSuccessListener {
                                         observeUserData()
                                         Toast.makeText(context, "Modifiche salvate con successo", Toast.LENGTH_SHORT).show()
+                                        resetFragment()
                                     }
                                     .addOnFailureListener { e ->
                                         Toast.makeText(context, "Errore durante il salvataggio delle modifiche: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -313,5 +315,15 @@ class SettingsFragment : Fragment() {
             profileImageView.setImageURI(imageUri)
             uploadImageToFirebase()
         }
+    }
+    private fun resetFragment() {
+        view?.findViewById<EditText>(R.id.nomeEditText)?.text?.clear()
+        view?.findViewById<EditText>(R.id.cognomeEditText)?.text?.clear()
+        view?.findViewById<EditText>(R.id.usernameEditText)?.text?.clear()
+        view?.findViewById<EditText>(R.id.emailEditText)?.text?.clear()
+        view?.findViewById<EditText>(R.id.passwordEditText)?.text?.clear()
+        view?.findViewById<EditText>(R.id.currentPasswordEditText)?.text?.clear()
+    //    val fragmentTransaction = parentFragmentManager.beginTransaction()
+      //  fragmentTransaction.detach(this).attach(this).commit()
     }
 }

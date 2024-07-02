@@ -1,6 +1,5 @@
 package it.insubria.esameconsegnadispositivimobili
 
-import com.google.firebase.database.DatabaseReference
 import java.io.Serializable
 
 

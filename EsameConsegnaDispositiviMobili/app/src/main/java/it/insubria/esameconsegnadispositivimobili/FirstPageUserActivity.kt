@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import it.insubria.esameconsegnadispositivimobili.databinding.ActivityFirstPageUserBinding
 
+
+//*** Activity contenitore di navbar e di fragment: HomeFragment,SearchFragment,AddPostFragment e SettingsFragment
 class FirstPageUserActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFirstPageUserBinding
     private lateinit var bottomNavigationView: BottomNavigationView
@@ -44,7 +46,7 @@ class FirstPageUserActivity : AppCompatActivity() {
         bottomNavigationView.selectedItemId = R.id.navigation_home
     }
 
-    private fun replaceFragment(fragment: Fragment) {
+    private fun replaceFragment(fragment: Fragment) {//metodo di sostituzione vista dei fragment al click di navbar!
         supportFragmentManager.beginTransaction()
             .replace(binding.fragmentContainer.id, fragment)
             .commit()

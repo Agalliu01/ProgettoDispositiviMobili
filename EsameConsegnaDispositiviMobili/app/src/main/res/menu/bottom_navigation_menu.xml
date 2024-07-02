@@ -3,6 +3,8 @@
     <item
         android:id="@+id/navigation_home"
         android:title="Home"
+        android:foregroundTint="@android:color/white"
+        android:textColor="@android:color/white"
         android:icon="@drawable/icons8_casa_50" />
 
     <item

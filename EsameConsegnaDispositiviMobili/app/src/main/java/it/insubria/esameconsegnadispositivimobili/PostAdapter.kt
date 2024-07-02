@@ -26,7 +26,7 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 class PostAdapter(
     private var postList: MutableList<Post>,
-    private val isPersonalSection: Boolean
+    private val isPersonalSection: Boolean//boolean utile nel caso si vogliano implementare sezioni su home per tutti/follower/perosnal section
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     private val TAG = "PostAdapter"
@@ -108,13 +108,13 @@ class PostAdapter(
         Glide.with(holder.postImageView.context)
             .load(currentPost.imageUrl)
             .into(holder.postImageView)
-
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         // Mostra/nascondi l'icona di eliminazione del post se è nella sezione "Personali"
-        holder.deleteIcon.visibility = if (isPersonalSection) View.VISIBLE else View.GONE
 
         // Gestione del click sull'icona per eliminare il post
         holder.deleteIcon.setOnClickListener {
-            showDeleteConfirmationDialog( holder.itemView.context, currentPost)
+            showDeleteConfirmationDialog( holder.itemView.context, currentPost)//gestiamo con finestra dialog
+            //altrimenti usavamo linea successiva per eliminazione diretta
         // deletePost(holder.itemView.context, currentPost)
         }
 
@@ -122,7 +122,7 @@ class PostAdapter(
         holder.likeIcon.setOnClickListener {
             toggleLike(currentPost)
         }
-        holder.link.setOnClickListener {
+        holder.link.setOnClickListener {//al click del link del sito
             openWebsite(holder.itemView.context, currentPost)
         }
 
@@ -163,7 +163,7 @@ class PostAdapter(
 
         builder.setPositiveButton("Yes") { dialog, which ->
             deletePost(context, post)
-            Toast.makeText(context, "Post deleted", Toast.LENGTH_SHORT).show()
+
         }
 
         builder.setNegativeButton("No") { dialog, which ->
@@ -269,7 +269,7 @@ class PostAdapter(
 
         if (url.isNotEmpty() && URLUtil.isValidUrl(url)) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            // Usa Intent.createChooser per permettere all'utente di scegliere l'applicazione
+            //  per permettere all'utente di scegliere l'applicazione
             val chooser = Intent.createChooser(intent, "Apri con")
 
             if (intent.resolveActivity(context.packageManager) != null) {

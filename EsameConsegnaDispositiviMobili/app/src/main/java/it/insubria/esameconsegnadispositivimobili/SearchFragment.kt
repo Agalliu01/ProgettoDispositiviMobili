@@ -18,7 +18,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
-
+//***Classe fragment usata per ricerca utenti e aggiornamento dinamico risultati
 class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
     private lateinit var searchEditText: EditText
     private lateinit var recyclerView: RecyclerView
@@ -112,6 +112,7 @@ class SearchFragment : Fragment(), AccountAdapter.OnItemClickListener {
                         // Utente già seguito, quindi rimuovilo
                         usersList.remove(user.username)
                           followButton.text = "Segui"
+                        //due righe successive NOn implementate per conflitto con theme menu
           //              followButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.red_outline)));
           //              followButton.setTextColor(getResources().getColor(R.color.black_text));
                     } else {

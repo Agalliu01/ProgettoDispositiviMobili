@@ -21,9 +21,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 
+
+//***Fragment collegato a navbar che permette l'agigunta di un post con Descrizione, immagine, link fonte e username account
 class AddPostFragment : Fragment() {
 
-  private lateinit var descriptionEditText: EditText
+  private lateinit var descriptionEditText: EditText//variabili inizializzate dopo
   private lateinit var linkEditText: EditText
   private lateinit var uploadButton: Button
   private lateinit var selectImageButton: Button
@@ -38,7 +40,7 @@ class AddPostFragment : Fragment() {
   ): View? {
     val view = inflater.inflate(R.layout.fragment_add_post, container, false)
     auth = FirebaseAuth.getInstance()
-
+  //istanziamo variabili per post
     descriptionEditText = view.findViewById(R.id.descriptionEditText)
     linkEditText = view.findViewById(R.id.linkEditText)
     uploadButton = view.findViewById(R.id.uploadButton)
@@ -56,8 +58,8 @@ class AddPostFragment : Fragment() {
     return view
   }
 
-  private fun selectImage() {
-    val intent = Intent(Intent.ACTION_GET_CONTENT)
+  private fun selectImage() {//metodo per permette di prelevare immagine
+    val intent = Intent(Intent.ACTION_GET_CONTENT)//ACTION_GET_CONTENT, permette da prelevarlo da dispositivo completo e NON solo da foto!
     intent.type = "image/*"
     startActivityForResult(intent, RC_IMAGE_PICKER)
   }
@@ -76,14 +78,14 @@ class AddPostFragment : Fragment() {
     }
   }
 
-  private fun validateAndUploadPost() {
+  private fun validateAndUploadPost() {//ci sono condizioni per upload post
     val currentUser = auth.currentUser
     val uid = currentUser?.uid ?: return
 
     val description = descriptionEditText.text.toString().trim()
     val link = linkEditText.text.toString().trim()
 
-    if (description.length > 500) {
+    if (description.length > 500) {//se descrizione e piu di 500 caratteri, NON viene permesso inserimento
       Toast.makeText(
         requireContext(),
         "La descrizione non può superare i 500 caratteri",
@@ -92,7 +94,7 @@ class AddPostFragment : Fragment() {
       return
     }
 
-    if (selectedImageUri == null) {
+    if (selectedImageUri == null) {//NON viene permesso pubblicare senza immagine,MA viene permesso pubblicare senza descrizione
       Toast.makeText(
         requireContext(),
         "Seleziona un'immagine prima di pubblicare",
@@ -104,12 +106,12 @@ class AddPostFragment : Fragment() {
     uploadPost(description, link)
   }
 
-  private fun uploadPost(description: String, link: String) {
+  private fun uploadPost(description: String, link: String) {//carichiamo il post
     val currentUser = auth.currentUser ?: return
-    var username = "admin"
+    var username = "admin"//Inutile inizilaizzazione in quanto nel mostrare post, se poi NOn esiste username, associamo admin su postadapter!
     val database = FirebaseDatabase.getInstance()
-    val postsRef = database.getReference("posts")
-    val usernameRef = database.getReference("users").child(currentUser.uid).child("username")
+    val postsRef = database.getReference("posts")//sezione post per aricarlo
+    val usernameRef = database.getReference("users").child(currentUser.uid).child("username")//prelevo username associatyo a utente
     val newPostKey = postsRef.push().key ?: ""
     val commentsUidLista = postsRef.child(newPostKey).child("comments").push().key ?: ""
 
@@ -123,7 +125,7 @@ class AddPostFragment : Fragment() {
       }
     })
 
-    val storageRef = FirebaseStorage.getInstance().reference
+    val storageRef = FirebaseStorage.getInstance().reference//prelevo immagine
     val imageRef = storageRef.child("images/$newPostKey.jpg")
     val uploadTask = imageRef.putFile(selectedImageUri!!)
 
@@ -138,10 +140,10 @@ class AddPostFragment : Fragment() {
       if (task.isSuccessful) {
         val downloadUri = task.result
         val imageUrl = downloadUri.toString()
-
+//creo oggetto post con info prelevate in precedenda
         val post = Post(
           uid = newPostKey,
-          uidAccount = currentUser.uid,
+          uidAccount = currentUser.uid,//riferimento univoco a chi ha pubblicato il post!!!
           username = username,
           description = description,
           imageUrl = imageUrl,
@@ -165,7 +167,7 @@ class AddPostFragment : Fragment() {
     }
   }
 
-  private fun navigateToFragment(fragment: Fragment) {
+  private fun navigateToFragment(fragment: Fragment) {//quando viene pubblicato post, visualizzazione immediata in home!
     val fragmentManager = parentFragmentManager
     val fragmentTransaction = fragmentManager.beginTransaction()
     fragmentTransaction.replace(R.id.fragmentContainer, fragment)

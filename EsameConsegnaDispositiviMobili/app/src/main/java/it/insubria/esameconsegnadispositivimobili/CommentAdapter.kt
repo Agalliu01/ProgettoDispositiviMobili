@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-
+//****Classe per visualizzazione commenti, commenti con immafine profilo, usenrame e testo associato
 class CommentAdapter(
     private val context: Context,
     private val commentList: List<Comment>
